@@ -6,6 +6,56 @@
 
 ## How to run
 
+### Scenarios at a glance
+
+- Backend (default profile):
+
+```bash
+./mvnw spring-boot:run
+```
+
+- Backend (dev profile, e.g., RDS or alternate DB):
+
+```bash
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
+```
+
+- Frontend dev server (proxy to backend on 8080):
+
+```bash
+cd src/frontend
+npm install
+npm start
+```
+
+- Single JAR with FE bundled:
+
+```bash
+./mvnw clean package
+java -jar target/spring-boot-full-stack-professional-0.0.1-SNAPSHOT.jar
+```
+
+- Local container image with Jib (no Dockerfile needed):
+
+```bash
+./mvnw clean install -P bundle-backend-and-frontend -P jib-build-local-docker-image -Dapp.image.tag=local
+docker run --name fullstack -p 8080:8080 \
+   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5555/syscomz \
+   -e SPRING_DATASOURCE_USERNAME=postgres \
+   -e SPRING_DATASOURCE_PASSWORD=password \
+   bdostumski/springboot-react-fullstack:local
+```
+
+- Override CORS origins (comma-separated):
+
+```bash
+# env var (relaxed binding)
+APP_CORS_ORIGINS="http://localhost:3000,http://localhost:5173" ./mvnw spring-boot:run
+
+# or JVM arg
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Dapp.cors.origins=http://localhost:3000,http://localhost:5173"
+```
+
 ### Local development (separate backend and frontend)
 
 Prerequisites:
@@ -44,6 +94,12 @@ npm start
 
 The React dev server is configured with a proxy to `http://localhost:8080` in `src/frontend/package.json`, so API calls are forwarded to the backend.
 
+#### CORS configuration
+
+- The backend exposes `/api/**` with CORS allowed origins read from `app.cors.origins` (comma-separated URLs).
+- Default is `http://localhost:3000` if not set.
+- For dev with alternative ports (e.g., Vite on 5173), set via env or JVM arg as shown above.
+
 ### Local (single JAR with frontend bundled)
 
 Build and run the app with the frontend already bundled into the JAR (default profile `bundle-backend-and-frontend` handles the FE build and copies it under `static/`):
@@ -69,6 +125,17 @@ docker run --name fullstack \
    -e SPRING_DATASOURCE_USERNAME=postgres \
    -e SPRING_DATASOURCE_PASSWORD=password \
    bdostumski/springboot-react-fullstack:local
+```
+
+### CI publish to GitHub Container Registry (GHCR)
+
+- The GitHub Actions workflow builds and pushes images to GHCR using the built-in `GITHUB_TOKEN`.
+- Image name convention: `ghcr.io/<owner>/springboot-react-fullstack:<sha>` and `:latest`.
+- Find images under your repo’s Packages or your GH profile Packages.
+- Pull example:
+
+```bash
+docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
 ```
 
 ### Cloud (AWS Elastic Beanstalk + RDS)
