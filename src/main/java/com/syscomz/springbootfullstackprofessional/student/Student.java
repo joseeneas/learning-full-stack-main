@@ -175,9 +175,6 @@ public class Student {
     @Column(nullable = false)                // database validations
     private Gender gender;                   // camelCase naming convention
 
-    // JPA requires a no-args constructor
-    public Student() {}
-
     // Convenience constructor excluding id (used for create operations)
     public Student(String name, String email, Gender gender) {
         this.name = name;

@@ -25,7 +25,6 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     @SuppressWarnings("null")
     public void addCorsMappings(@NonNull CorsRegistry registry) {
-        @SuppressWarnings("null")
         String[] originsArray = allowedOrigins.toArray(new String[0]);
 
         registry.addMapping("/api/**")

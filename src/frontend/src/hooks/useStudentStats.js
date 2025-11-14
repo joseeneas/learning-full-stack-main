@@ -2,11 +2,23 @@
 // Custom hook to derive student statistics (counts and percentages) memoized.
 import { useMemo } from 'react';
 
+// Normalize backend/CSV gender values to canonical display labels
+function normalizeGender(value) {
+  if (value == null) return 'Unknown';
+  const s = String(value).trim();
+  if (s.length === 0) return 'Unknown';
+  const u = s.toUpperCase();
+  if (u === 'M' || u === 'MALE') return 'Male';
+  if (u === 'F' || u === 'FEMALE') return 'Female';
+  if (u === 'O' || u === 'OTHER' || u === 'NON-BINARY' || u === 'NONBINARY' || u === 'NB') return 'Other';
+  return 'Unknown';
+}
+
 export default function useStudentStats(students) {
   return useMemo(() => {
     const total = students.length;
     const genderCounts = students.reduce((acc, s) => {
-      const g = (s.gender || 'Unknown');
+      const g = normalizeGender(s.gender);
       acc[g] = (acc[g] || 0) + 1;
       return acc;
     }, {});

@@ -29,6 +29,11 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.data.domain.Page;
+import java.util.Map;
+import java.util.List;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 /*
  * The StudentController class is annotated with @RestController, marking it as a Spring MVC
@@ -93,6 +98,54 @@ public class StudentController {
             @PathVariable("studentId") Long studentId,
             @Valid @RequestBody Student student) {
         studentService.updateStudent(studentId, student);
+    }
+
+    @GetMapping("/stats/gender")
+    public Map<String, Long> getGenderStats() {
+        return studentService.getGenderStats();
+    }
+
+    @GetMapping("/search")
+    public Page<Student> searchStudents(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "50") int size,
+                                        @RequestParam(defaultValue = "id") String sortBy,
+                                        @RequestParam(defaultValue = "asc") String direction,
+                                        @RequestParam(required = false) Gender gender,
+                                        @RequestParam(required = false) String domain) {
+        return studentService.searchStudents(page, size, sortBy, direction, gender, domain);
+    }
+
+    @GetMapping(value = "/export", produces = "text/csv")
+    public ResponseEntity<String> exportStudentsCsv(@RequestParam(defaultValue = "id") String sortBy,
+                                                    @RequestParam(defaultValue = "asc") String direction,
+                                                    @RequestParam(required = false) Gender gender,
+                                                    @RequestParam(required = false) String domain) {
+        List<Student> all = studentService.searchStudentsAll(sortBy, direction, gender, domain);
+        StringBuilder sb = new StringBuilder();
+        // header
+        sb.append("id,name,email,gender\n");
+        for (Student s : all) {
+            sb.append(csv(s.getId()))
+              .append(',').append(csv(s.getName()))
+              .append(',').append(csv(s.getEmail()))
+              .append(',').append(csv(s.getGender() != null ? s.getGender().name() : ""))
+              .append('\n');
+        }
+        String filename = "students-export-" + java.time.LocalDate.now() + ".csv";
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(sb.toString());
+    }
+
+    private static String csv(Object value) {
+        if (value == null) return "";
+        String s = String.valueOf(value);
+        if (s.contains("\"") || s.contains(",") || s.contains("\n") || s.contains("\r")) {
+            s = '"' + s.replace("\"", "\"\"") + '"';
+        }
+        return s;
     }
 
 }
