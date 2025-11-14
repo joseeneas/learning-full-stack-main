@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   build-test:
@@ -136,33 +137,29 @@ jobs:
   push-ghcr:
     name: Push Image to GHCR
     runs-on: ubuntu-latest
-    needs: jib-build-tar
+    needs: build-test
     if: ${{ github.event_name != 'pull_request' }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       GHCR_REPO: ghcr.io/${{ github.repository_owner }}/springboot-react-fullstack
     steps:
-      - name: Download OCI image tar
-        uses: actions/download-artifact@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          name: oci-image-tar
-          path: .
+          distribution: temurin
+          java-version: '21'
+          cache: 'maven'
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Load image tar
-        run: docker load -i jib-image.tar
-
-      - name: Push SHA tag
+      - name: Build & Push image with Jib (direct to GHCR)
         run: |
-          docker push ${{ env.GHCR_REPO }}:${{ github.sha }}
-
-      - name: Tag and push latest
-        run: |
-          docker tag ${{ env.GHCR_REPO }}:${{ github.sha }} ${{ env.GHCR_REPO }}:latest
-          docker push ${{ env.GHCR_REPO }}:latest
+          ./mvnw -B -P bundle-backend-and-frontend \
+            clean install \
+            com.google.cloud.tools:jib-maven-plugin:3.4.2:build \
+            -Dimage=${{ env.GHCR_REPO }}:${{ github.sha }} \
+            -Djib.to.tags=latest \
+            -Djib.to.auth.username=${{ github.actor }} \
+            -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }} \
+            -Dapp.image.tag=${{ github.sha }}
