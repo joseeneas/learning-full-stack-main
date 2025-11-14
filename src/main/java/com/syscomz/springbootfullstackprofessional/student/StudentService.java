@@ -60,9 +60,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /*
  * The StudentService class encapsulates the business logic related to Student entities.
@@ -89,6 +92,16 @@ public class    StudentService {
         Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
         return studentRepository.findAll(pageable);
+    }
+    public Page<Student> searchStudents(int page, int size, String sortBy, String direction, Gender gender, String domain) {
+        Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+        return studentRepository.search(gender, (domain == null || domain.isBlank()) ? null : domain, pageable);
+    }
+    public List<Student> searchStudentsAll(String sortBy, String direction, Gender gender, String domain) {
+        Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(dir, sortBy);
+        return studentRepository.search(gender, (domain == null || domain.isBlank()) ? null : domain, sort);
     }
     public void addStudent(Student student) {
         Boolean isEmailTaken = studentRepository.selectExistsEmail(student.getEmail());
@@ -127,5 +140,22 @@ public class    StudentService {
         }
 
         studentRepository.save(existing);
+    }
+
+    public Map<String, Long> getGenderStats() {
+        // Initialize with fixed order and zero defaults
+        Map<String, Long> result = new LinkedHashMap<>();
+        result.put("Male", 0L);
+        result.put("Female", 0L);
+        result.put("Other", 0L);
+        for (StudentRepository.GenderCountView row : studentRepository.countByGender()) {
+            if (row.getGender() == null) continue;
+            switch (row.getGender()) {
+                case MALE -> result.put("Male", row.getCount());
+                case FEMALE -> result.put("Female", row.getCount());
+                case OTHER -> result.put("Other", row.getCount());
+            }
+        }
+        return result;
     }
 }
