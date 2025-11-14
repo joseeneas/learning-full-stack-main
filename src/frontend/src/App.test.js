@@ -9,7 +9,7 @@
  * @requires ./App
  */
 import { render } from '@testing-library/react';
-import App from './App';
+import App from './App.jsx';
 
 // Test case to check if the App component renders correctly
 // 

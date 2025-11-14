@@ -20,23 +20,7 @@
  * @see {@link https://react.dev/reference/react-dom/client/createRoot|React createRoot Documentation}
  * @see {@link https://bit.ly/CRA-vitals|Web Vitals Documentation}
  */
-import React           from 'react';
-import ReactDOM        from 'react-dom/client';
-import './index.css';
-import App             from './App';
-import reportWebVitals from './reportWebVitals';
-/**
- * The root React DOM element created using ReactDOM.createRoot().
- * This is the entry point for rendering the React application into the DOM.
- * @type {import('react-dom/client').Root}
- */
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals(console.log);
+// Deprecated CRA entrypoint. Vite uses `src/main.jsx` via `index.html`.
+// Keeping this file as a non-JSX stub to avoid accidental bundling.
+console.warn('[frontend] Deprecated entry: use main.jsx with Vite');
+export {};
