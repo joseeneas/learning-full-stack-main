@@ -182,6 +182,56 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000). The React dev server proxies API requests to [http://localhost:8080](http://localhost:8080).
 
+### Testing
+
+- Unit tests only (fast):
+
+```bash
+./mvnw test
+```
+
+- Full test suite (unit + integration tests):
+
+```bash
+./mvnw verify
+```
+
+- Full build without running integration tests (keeps unit tests):
+
+```bash
+./mvnw -DskipITs=true verify
+```
+
+- Run a specific unit test (example):
+
+```bash
+./mvnw -Dtest=StudentServiceTest test
+```
+
+- Run a specific integration test (example):
+
+```bash
+./mvnw -Dit.test=StudentExportIT verify
+```
+
+Notes:
+
+- Integration tests use an in-memory H2 database in PostgreSQL compatibility mode. No external Postgres is required during tests. See `src/test/resources/application-it.properties`.
+- Test reports: unit → `target/surefire-reports`, integration → `target/failsafe-reports`.
+- Frontend tests (optional):
+
+```bash
+cd src/frontend
+npm install
+npm test
+```
+
+- Manually verify CSV export (optional):
+
+```bash
+curl -L -o students.csv "http://localhost:8080/api/v1/students/export?gender=FEMALE&domain=&sortBy=firstName&direction=ASC"
+```
+
 ### Troubleshooting
 
 - Database connection refused
