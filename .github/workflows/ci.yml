@@ -124,7 +124,6 @@ jobs:
           ./mvnw -B -P bundle-backend-and-frontend \
             clean install \
             com.google.cloud.tools:jib-maven-plugin:3.4.2:buildTar \
-            -DimageTar=target/app-image.tar \
             -Dimage=${{ env.GHCR_REPO }}:${{ github.sha }} \
             -Dapp.image.tag=${{ github.sha }}
 
@@ -132,7 +131,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: oci-image-tar
-          path: target/app-image.tar
+          path: target/jib-image.tar
 
   push-ghcr:
     name: Push Image to GHCR
@@ -157,7 +156,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load image tar
-        run: docker load -i app-image.tar
+        run: docker load -i jib-image.tar
 
       - name: Push SHA tag
         run: |
