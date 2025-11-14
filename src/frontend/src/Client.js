@@ -27,11 +27,11 @@ const checkStatus = response => {
  * Note: CORS is handled via proxy configuration in package.json
  */
 export const getAllStudents = () =>
-    fetch("api/v1/students")
+    fetch("/api/v1/students")
         .then(response => checkStatus(response));
 
 export const getStudentsPage = (page = 0, size = 50, sortBy = 'id', direction = 'asc') =>
-    fetch(`api/v1/students/page?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`)
+    fetch(`/api/v1/students/page?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`)
         .then(response => checkStatus(response));
 /**
  * Fetches a paginated student search with optional filters.
@@ -46,7 +46,7 @@ export const getStudentsSearch = (page = 0, size = 50, sortBy = 'id', direction 
     const params = new URLSearchParams({ page: String(page), size: String(size), sortBy, direction });
     if (gender) params.set('gender', gender);
     if (domain) params.set('domain', domain);
-    return fetch(`api/v1/students/search?${params.toString()}`)
+    return fetch(`/api/v1/students/search?${params.toString()}`)
         .then(response => checkStatus(response));
 }
 /**
@@ -60,7 +60,7 @@ export const getStudentsSearch = (page = 0, size = 50, sortBy = 'id', direction 
  * @throws {Error} Throws an error if the request fails or status check fails
  */
 export const addNewStudent = student =>
-    fetch("api/v1/students", {
+    fetch("/api/v1/students", {
         headers: {
             'Content-type': 'application/json'
         },
@@ -75,7 +75,7 @@ export const addNewStudent = student =>
  * @throws {Error} Throws an error if the fetch request fails or status check fails
  */
 export const deleteStudent = studentId =>
-    fetch(`api/v1/students/${studentId}`, {
+    fetch(`/api/v1/students/${studentId}`, {
         method: 'DELETE'
     }).then(checkStatus);
 /**
@@ -87,7 +87,7 @@ export const deleteStudent = studentId =>
  * @throws {Error} Throws an error if the fetch request fails or status check fails
  */
 export const updateStudent = (studentId, student) =>
-    fetch(`api/v1/students/${studentId}`, {
+    fetch(`/api/v1/students/${studentId}`, {
         headers: {
             'Content-type': 'application/json'
         },
@@ -97,4 +97,4 @@ export const updateStudent = (studentId, student) =>
 
 // Global gender stats
 export const getGenderStats = () =>
-    fetch('api/v1/students/stats/gender').then(checkStatus);
+    fetch('/api/v1/students/stats/gender').then(checkStatus);
