@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "latest": "^0.2.0",
+    "react-scripts": "^5.0.1"
+  },
+  "devDependencies": {
+    "eslint-config-react-app": "^7.0.1"
+  }
+}
