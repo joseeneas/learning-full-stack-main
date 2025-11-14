@@ -69,15 +69,31 @@ function StudentDrawerForm({ showDrawer, setShowDrawer, fetchStudents, initialVa
                 onCLose();
                 successNotification("Success", `${student.name} saved successfully`)
                 fetchStudents();
-            }).catch(err => {
-                console.log(err.response);
-                // get error response as an object
-                err.response.json().then(res => {
-                    errorNotification(
-                        "There was an issue",
-                        `${res.message} [statusCode ${res.status}] [${res.statusText}]`,
-                        "bottomLeft");
-                });
+            }).catch(async (err) => {
+                const res = err && err.response;
+                console.log(res);
+                if (!res) {
+                    errorNotification("Network error", "Request failed or was blocked", "bottomLeft");
+                } else {
+                    try {
+                        const ct = res.headers.get && res.headers.get('content-type');
+                        if (ct && ct.includes('application/json')) {
+                            const data = await res.json();
+                            errorNotification(
+                                "There was an issue",
+                                `${data.message ?? 'Request failed'} [statusCode ${res.status}]`,
+                                "bottomLeft");
+                        } else {
+                            const text = await res.text();
+                            errorNotification(
+                                "There was an issue",
+                                `${(text || 'Non-JSON error').slice(0,200)} [statusCode ${res.status}]`,
+                                "bottomLeft");
+                        }
+                    } catch (_e) {
+                        errorNotification("There was an issue", `Request failed [statusCode ${res.status}]`, "bottomLeft");
+                    }
+                }
             }).finally(() => {
                 setSubmitting(false);
             })

@@ -163,16 +163,31 @@ const removeStudent = (studentId, callback) => {
   deleteStudent(studentId).then(() => {
     successNotification("Student deleted", `Student with ${studentId} was deleted`);
     callback();
-  }).catch(err => {
-    console.log(err.response);
-    // get error response as an object
-    err.response.json().then(res => {
-      console.log(res);
-      errorNotification(
-        "There was an issue",
-        `${res.message} [statusCode ${res.status}] [${res.statusText}]`
-      )
-    })
+  }).catch(async err => {
+    const res = err && err.response;
+    console.log(res);
+    if (!res) {
+      errorNotification("Network error", "Request failed or was blocked");
+    } else {
+      try {
+        const ct = res.headers.get && res.headers.get('content-type');
+        if (ct && ct.includes('application/json')) {
+          const data = await res.json();
+          errorNotification(
+            "There was an issue",
+            `${data.message ?? 'Request failed'} [statusCode ${res.status}]`
+          );
+        } else {
+          const text = await res.text();
+          errorNotification(
+            "There was an issue",
+            `${(text || 'Non-JSON error').slice(0,200)} [statusCode ${res.status}]`
+          );
+        }
+      } catch (_e) {
+        errorNotification("There was an issue", `Request failed [statusCode ${res.status}]`);
+      }
+    }
   });
 }
 // Table columns configuration for displaying student data
@@ -340,14 +355,31 @@ function App() {
         setCurrentPage(data.number + 1); // backend is 0-based
         // Refresh global gender stats alongside page fetch
         refreshGenderStats();
-      }).catch(err => {
-        console.log(err.response);
-        err.response.json().then(res => {
-          errorNotification(
-            "There was an issue",
-            `${res.message} [statusCode ${res.status}] [${res.error}]`
-          );
-        });
+      }).catch(async (err) => {
+        const res = err && err.response;
+        console.log(res);
+        if (!res) {
+          errorNotification("Network error", "Request failed or was blocked");
+        } else {
+          try {
+            const ct = res.headers.get && res.headers.get('content-type');
+            if (ct && ct.includes('application/json')) {
+              const data = await res.json();
+              errorNotification(
+                "There was an issue",
+                `${data.message ?? 'Request failed'} [statusCode ${res.status}]`
+              );
+            } else {
+              const text = await res.text();
+              errorNotification(
+                "There was an issue",
+                `${(text || 'Non-JSON error').slice(0,200)} [statusCode ${res.status}]`
+              );
+            }
+          } catch (_e) {
+            errorNotification("There was an issue", `Request failed [statusCode ${res.status}]`);
+          }
+        }
       }).finally(() => setFetching(false));
   };
   const refreshGenderStats = () => {
@@ -727,7 +759,7 @@ function App() {
                     const params = new URLSearchParams({ sortBy: 'id', direction: 'asc' });
                     if (reportGender) params.set('gender', String(reportGender).toUpperCase());
                     if (reportDomain && reportDomain.trim().length) params.set('domain', reportDomain.trim());
-                    const url = `api/v1/students/export?${params.toString()}`;
+                    const url = `/api/v1/students/export?${params.toString()}`;
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `students-report-${new Date().toISOString().slice(0,10)}.csv`;
