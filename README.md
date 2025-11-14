@@ -4,6 +4,7 @@
 ## Upgrade Notes
 
 - 2025-11-02: Upgraded Spring Boot parent to 3.5.0 (Spring Framework 6.2+). Verified build and tests pass on Java 23 (project targets Java 21). No code changes required.
+- 2025-11-14: Migrated frontend to Vite 5 (React 18). Dev server runs on [http://localhost:5173](http://localhost:5173) with `/api` proxy configured in `src/frontend/vite.config.js`. Frontend build outputs to `src/frontend/build` and is bundled into Spring Boot static resources during Maven build. CORS updated to include Vite dev origins; CI pushes images to GHCR via Jib.
 
 ## How to run
 
@@ -26,6 +27,9 @@ SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```bash
 cd src/frontend
 npm install
+# Either command works (Vite):
+npm run dev
+# or
 npm start
 ```
 
@@ -85,21 +89,20 @@ docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"
 
 The backend uses `src/main/resources/application.properties` by default, which points to `jdbc:postgresql://localhost:5555/syscomz` with user `postgres` and password `password`.
 
-1. Start the frontend (port 3000, proxies API to 8080):
+1. Start the frontend (Vite on port 5173, proxies `/api` → 8080):
 
 ```bash
 cd src/frontend
 npm install
-npm start
+npm run dev
 ```
 
-The React dev server is configured with a proxy to `http://localhost:8080` in `src/frontend/package.json`, so API calls are forwarded to the backend.
+The Vite dev server proxies `/api` to `http://localhost:8080` via `src/frontend/vite.config.js`, so API calls are forwarded to the backend.
 
 #### CORS configuration
 
 - The backend exposes `/api/**` with CORS allowed origins read from `app.cors.origins` (comma-separated URLs).
-- Default is `http://localhost:3000` if not set.
-- For dev with alternative ports (e.g., Vite on 5173), set via env or JVM arg as shown above.
+- For local dev, ensure it includes the Vite origin `http://localhost:5173` (and optionally `http://127.0.0.1:5173` and `http://localhost:3000` if needed). Set via env or JVM arg as shown above.
 
 ### Local (single JAR with frontend bundled)
 
@@ -177,10 +180,10 @@ Terminal 2 (frontend):
 ```bash
 cd src/frontend
 npm install
-npm start
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The React dev server proxies API requests to [http://localhost:8080](http://localhost:8080).
+Open [http://localhost:5173](http://localhost:5173). The Vite dev server proxies API requests to [http://localhost:8080](http://localhost:8080).
 
 ### Testing
 
@@ -240,16 +243,26 @@ curl -L -o students.csv "http://localhost:8080/api/v1/students/export?gender=FEM
   - Create the DB once: `docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"`.
 - Port already in use
   - Backend 8080 busy: `lsof -i :8080` (macOS) then stop the process.
-  - Frontend 3000 busy: the dev server will offer to use another port; accept or free 3000.
+   - Frontend 5173 busy: the dev server will offer another port; accept or free 5173.
 - CORS during local dev
-  - The frontend dev server `proxy` in `src/frontend/package.json` should be `http://localhost:8080`.
-  - Restart `npm start` after changing `proxy`.
+   - The Vite dev server proxy is configured in `src/frontend/vite.config.js` (proxies `/api` to `http://localhost:8080`).
+   - Restart `npm run dev` after changing `vite.config.js`.
+   - If you still see 403s in Safari, try a hard refresh, clear cache, or use a private window (browsers can cache preflight results).
+
 - Dockerized app cannot reach host database
   - On macOS/Windows use `host.docker.internal` in `SPRING_DATASOURCE_URL`.
   - Example: `jdbc:postgresql://host.docker.internal:5555/syscomz`.
 - AWS RDS connectivity
   - Set `SPRING_PROFILES_ACTIVE=dev` (uses `application-dev.properties`).
   - Verify EB and RDS security groups allow connectivity.
+
+### Frontend (Vite) notes
+
+- Port: `5173` by default (`vite`/`npm run dev`).
+- Proxy: `/api` → `http://localhost:8080` in `src/frontend/vite.config.js`.
+- Build output: `src/frontend/build` (served by Spring Boot when bundled).
+- Commands: `npm run dev` (dev), `npm run build` (production build), `npm run preview` (serve built files locally).
+- CORS: include `http://localhost:5173` in `app.cors.origins` when running backend and frontend separately.
 
 ## Software Description
 
