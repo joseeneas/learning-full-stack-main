@@ -1,0 +1,102 @@
+/**
+ * Main Application Styles
+ * 
+ * This stylesheet contains the core styling for the React application including:
+ * - App container layout and alignment
+ * - App logo styling and rotation animation
+ * - Header section with flexbox layout
+ * - Link styling
+ * - Custom badge styling for Ant Design components
+ * - Keyframe animations for logo rotation
+ * 
+ * @media prefers-reduced-motion - Respects user's motion preferences
+ * @keyframes App-logo-spin - Defines 360-degree rotation animation over 20 seconds
+ */
+ 
+/* 
+* This CSS rule targets any element with the class App. Applying text-align: center centers inline content (text, inline-blocks, 
+* inline images) horizontally within that element’s content box. It does not affect block-level elements’ own horizontal positioning 
+* unless they are inline or their internal inline content is what needs centering. For broader layout centering (e.g., centering the 
+* container itself), additional properties (margin: 0 auto; display settings; flexbox) would be required.
+*/
+.App {
+  text-align: center;
+}
+/* 
+ * This rule styles any element with the class App-logo. The height is set to 40vmin, which means 40% of the viewport’s smaller dimension 
+ * (width or height). This makes the logo scale responsively with the screen size and orientation. Because only the height is set, the width 
+ * remains auto, preserving the image’s intrinsic aspect ratio. 
+ * pointer-events: none disables mouse and touch interaction on the element. Clicks, hovers, and drag events pass through to elements underneath, 
+ * effectively making the logo decorative and non-interactive. It doesn’t affect rendering or animations, and it doesn’t automatically remove 
+ * keyboard focus from inherently focusable elements, but it will prevent the element from being clicked with a pointer. If interaction is needed 
+ * on a child, you can set pointer-events: auto on that child.
+*/
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+/* 
+ * This media query checks if the user has not indicated a preference for reduced motion. If they haven’t, it applies an infinite rotation 
+ * animation to elements with the class App-logo. The animation named App-logo-spin runs continuously with a duration of 20 seconds per 
+ * complete rotation, using a linear timing function for consistent speed.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+/* 
+ * This rule styles elements with the class App-header. It sets a dark background color, makes the header take at least the full viewport 
+ * height, and uses flexbox to center its content both vertically and horizontally. The font size is responsive, calculated as 10 pixels plus 
+ * 2% of the viewport’s smaller dimension (width or height). The text color is set to white for contrast against the dark background.
+*/
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+/* 
+ * This rule styles elements with the class App-link. It sets the text color to a specific shade of blue (#61dafb), which is commonly used 
+ * for links in React applications.
+*/
+.App-link {
+  color: #61dafb;
+}
+/* 
+ * This rule targets elements with the class site-badge-count-4 that contain a child element with the class ant-badge-count. It applies 
+ * specific styles to the badge count, including a left margin of 10 pixels, a text color of #999 (a medium gray), a white background color, 
+ * and an inset box shadow that creates a subtle border effect using a light gray color (#d9d9d9).
+*/
+.site-badge-count-4 .ant-badge-count {
+  margin-left: 10px;
+  color: #999;
+  background-color: #fff;
+  box-shadow: 0 0 0 1px #d9d9d9 inset;
+}
+/* 
+ * This keyframe animation named App-logo-spin defines a full 360-degree rotation. It starts with the element at 0 degrees rotation 
+ * (the default position) and ends with a complete rotation to 360 degrees. This animation can be applied to elements to create a spinning effect.
+*/
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Highlight selected row in update mode */
+.editing-row td {
+  background-color: #e6f7ff !important;
+}
+
+/* Pointer cursor for clickable rows */
+.clickable-row {
+  cursor: pointer;
+}

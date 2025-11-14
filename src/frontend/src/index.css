@@ -1,0 +1,38 @@
+/**
+ * Global stylesheet for the application
+ * 
+ * This file contains base styles and CSS resets for the entire application.
+ * It imports Ant Design's reset styles and defines fundamental typography
+ * and rendering preferences.
+ * 
+ * @file /Users/eneas/Training/learning-full-stack-main/src/frontend/src/index.css
+ * 
+ * Dependencies:
+ * - antd/dist/reset.css: Ant Design's CSS reset styles
+ * 
+ * Styles:
+ * - body: Sets default margin, font stack, and font rendering optimizations
+ * - code: Defines monospace font family for code blocks
+ * 
+ * Font Stacks:
+ * - Body text uses system font stack for optimal performance and native appearance
+ * - Code uses monospace fonts commonly available across platforms
+ * 
+ * Font Smoothing:
+ * - Applies antialiasing for better text rendering on WebKit and Mozilla browsers
+ */
+@import 'antd/dist/reset.css';
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
