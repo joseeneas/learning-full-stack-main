@@ -34,6 +34,22 @@ export const getStudentsPage = (page = 0, size = 50, sortBy = 'id', direction = 
     fetch(`api/v1/students/page?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`)
         .then(response => checkStatus(response));
 /**
+ * Fetches a paginated student search with optional filters.
+ * @param {number} page 0-based page index
+ * @param {number} size page size
+ * @param {string} sortBy sort field
+ * @param {('asc'|'desc')} direction sort direction
+ * @param {('MALE'|'FEMALE'|'OTHER'|undefined)} gender optional gender filter (enum)
+ * @param {string|undefined} domain optional email domain filter (e.g., 'gmail.com')
+ */
+export const getStudentsSearch = (page = 0, size = 50, sortBy = 'id', direction = 'asc', gender, domain) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size), sortBy, direction });
+    if (gender) params.set('gender', gender);
+    if (domain) params.set('domain', domain);
+    return fetch(`api/v1/students/search?${params.toString()}`)
+        .then(response => checkStatus(response));
+}
+/**
  * Adds a new student to the system by sending a POST request to the API endpoint.
  * 
  * @param {Object} student - The student object to be added
@@ -78,3 +94,7 @@ export const updateStudent = (studentId, student) =>
         method: 'PUT',
         body: JSON.stringify(student)
     }).then(checkStatus);
+
+// Global gender stats
+export const getGenderStats = () =>
+    fetch('api/v1/students/stats/gender').then(checkStatus);

@@ -1,3 +1,4 @@
+
 # Full Stack Spring Boot & React (PROFESSIONAL)
 
 ## Upgrade Notes
@@ -184,21 +185,21 @@ Open [http://localhost:3000](http://localhost:3000). The React dev server proxie
 ### Troubleshooting
 
 - Database connection refused
-   - Ensure the container is up: `docker ps` should show the `db` container.
-   - Confirm DB port mapping and credentials match `application.properties`.
-   - Create the DB once: `docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"`.
+  - Ensure the container is up: `docker ps` should show the `db` container.
+  - Confirm DB port mapping and credentials match `application.properties`.
+  - Create the DB once: `docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"`.
 - Port already in use
-   - Backend 8080 busy: `lsof -i :8080` (macOS) then stop the process.
-   - Frontend 3000 busy: the dev server will offer to use another port; accept or free 3000.
+  - Backend 8080 busy: `lsof -i :8080` (macOS) then stop the process.
+  - Frontend 3000 busy: the dev server will offer to use another port; accept or free 3000.
 - CORS during local dev
-   - The frontend dev server `proxy` in `src/frontend/package.json` should be `http://localhost:8080`.
-   - Restart `npm start` after changing `proxy`.
+  - The frontend dev server `proxy` in `src/frontend/package.json` should be `http://localhost:8080`.
+  - Restart `npm start` after changing `proxy`.
 - Dockerized app cannot reach host database
-   - On macOS/Windows use `host.docker.internal` in `SPRING_DATASOURCE_URL`.
-   - Example: `jdbc:postgresql://host.docker.internal:5555/syscomz`.
+  - On macOS/Windows use `host.docker.internal` in `SPRING_DATASOURCE_URL`.
+  - Example: `jdbc:postgresql://host.docker.internal:5555/syscomz`.
 - AWS RDS connectivity
-   - Set `SPRING_PROFILES_ACTIVE=dev` (uses `application-dev.properties`).
-   - Verify EB and RDS security groups allow connectivity.
+  - Set `SPRING_PROFILES_ACTIVE=dev` (uses `application-dev.properties`).
+  - Verify EB and RDS security groups allow connectivity.
 
 ## Software Description
 
@@ -425,7 +426,6 @@ Open [http://localhost:3000](http://localhost:3000). The React dev server proxie
    1. mvn clean install -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=3 -- use -P (for profile) bundle-backend-and-frontend to bundle FE and BE locally, and then run -P (for profile) bundle-backend-and-frontend to use Jib to create docker image and to push it into DockerHub repository, and then set up the version of the docker image -Dapp.image.tag=3 (where app.image.tag is environment variable)
    1. To deploy the application into AWS upload docker-compose.yaml file
 ![AWS Deployed Application](./resources/aws-deployed-application.png)
-
 
 1. CI/CD Pipelines (Continues Integration Continues Delivery)
    1. CI/CD Steps:

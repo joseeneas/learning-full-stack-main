@@ -18,7 +18,11 @@ package com.syscomz.springbootfullstackprofessional.student;
  */
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.util.List;
 
 /*
  * The StudentRepository interface extends JpaRepository, providing CRUD operations 
@@ -40,4 +44,26 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     // Spring Data derived query to check email usage excluding a specific student id
     boolean existsByEmailAndIdNot(String email, Long id);
+
+    // Projection for gender counts
+    interface GenderCountView {
+        Gender getGender();
+        long getCount();
+    }
+
+    // Aggregate counts by gender using JPQL
+    @Query("SELECT s.gender as gender, COUNT(s) as count FROM Student s GROUP BY s.gender")
+    List<GenderCountView> countByGender();
+
+    // Paged search with optional gender and domain filters
+    @Query("SELECT s FROM Student s WHERE (:gender IS NULL OR s.gender = :gender) AND (:domain IS NULL OR LOWER(s.email) LIKE CONCAT('%@', LOWER(:domain)))")
+    Page<Student> search(@Param("gender") Gender gender,
+                         @Param("domain") String domain,
+                         Pageable pageable);
+
+    // Unpaged search variant for exports (with sorting)
+    @Query("SELECT s FROM Student s WHERE (:gender IS NULL OR s.gender = :gender) AND (:domain IS NULL OR LOWER(s.email) LIKE CONCAT('%@', LOWER(:domain)))")
+    List<Student> search(@Param("gender") Gender gender,
+                         @Param("domain") String domain,
+                         org.springframework.data.domain.Sort sort);
 }
