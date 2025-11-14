@@ -243,11 +243,11 @@ curl -L -o students.csv "http://localhost:8080/api/v1/students/export?gender=FEM
   - Create the DB once: `docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"`.
 - Port already in use
   - Backend 8080 busy: `lsof -i :8080` (macOS) then stop the process.
-   - Frontend 5173 busy: the dev server will offer another port; accept or free 5173.
+  - Frontend 5173 busy: the dev server will offer another port; accept or free 5173.
 - CORS during local dev
-   - The Vite dev server proxy is configured in `src/frontend/vite.config.js` (proxies `/api` to `http://localhost:8080`).
-   - Restart `npm run dev` after changing `vite.config.js`.
-   - If you still see 403s in Safari, try a hard refresh, clear cache, or use a private window (browsers can cache preflight results).
+  - The Vite dev server proxy is configured in `src/frontend/vite.config.js` (proxies `/api` to `http://localhost:8080`).
+  - Restart `npm run dev` after changing `vite.config.js`.
+  - If you still see 403s in Safari, try a hard refresh, clear cache, or use a private window (browsers can cache preflight results).
 
 - Dockerized app cannot reach host database
   - On macOS/Windows use `host.docker.internal` in `SPRING_DATASOURCE_URL`.
