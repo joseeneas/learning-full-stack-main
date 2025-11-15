@@ -418,7 +418,7 @@ function App() {
                 </Card>
               </Col>
             </Row>
-            <Divider orientation="left">Gender Distribution</Divider>
+            <Divider orientation="left">Gender and Domain Distribution</Divider>
             <Row gutter={[16,16]}>
               <Col xs={24} md={12}>
                 <Card size="small" bodyStyle={{ height: 260 }}>
@@ -508,75 +508,98 @@ function App() {
           <p>Select an action in the submenu (Export / Import CSV).</p>
         </>;
       case 'reports':
-        return <>
-          <h2 style={{ marginBottom: 16 }}>Reports</h2>
-          <Card size="small" title="Student Report" style={{ marginBottom: 16 }}>
-            <Form layout="inline" onFinish={() => fetchReport(1, reportPageSize)}>
-              <Form.Item label="Gender">
-                <Select
-                  allowClear
-                  placeholder="Any"
-                  style={{ width: 160 }}
-                  value={reportGender}
-                  onChange={(val) => setReportGender(val)}
-                  options={[
-                    { label: 'Male', value: 'MALE' },
-                    { label: 'Female', value: 'FEMALE' },
-                    { label: 'Other', value: 'OTHER' },
-                  ]}
-                />
-              </Form.Item>
-              <Form.Item label="Domain">
-                <Input
-                  placeholder="e.g. gmail.com"
-                  style={{ width: 220 }}
-                  value={reportDomain}
-                  onChange={(e) => setReportDomain(e.target.value)}
-                  allowClear
-                />
-              </Form.Item>
-              <Form.Item>
-                <Space>
-                  <Button type="primary" htmlType="submit">Apply</Button>
-                  <Button onClick={() => { setReportGender(undefined); setReportDomain(''); fetchReport(1, reportPageSize); }}>Reset</Button>
-                  <Button htmlType="button" icon={<DownloadOutlined />} onClick={() => {
-                    const params = new URLSearchParams({ sortBy: 'id', direction: 'asc' });
-                    if (reportGender) params.set('gender', String(reportGender).toUpperCase());
-                    if (reportDomain && reportDomain.trim().length) params.set('domain', reportDomain.trim());
-                    const url = `api/v1/students/export?${params.toString()}`;
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `students-report-${new Date().toISOString().slice(0,10)}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                  }}>Export CSV</Button>
-                </Space>
-              </Form.Item>
-            </Form>
-          </Card>
-          <Card size="small">
-            <Table
-              size="small"
-              bordered
-              sticky
-              dataSource={reportData}
-              columns={reportColumns}
-              loading={reportFetching}
-              rowKey={(s) => s.id}
-              pagination={{
-                current: reportPage,
-                pageSize: reportPageSize,
-                total: reportTotal,
-                showSizeChanger: true,
-                pageSizeOptions: ['10','20','50','100','200'],
-                onChange: (page, size) => { setReportPage(page); setReportPageSize(size); fetchReport(page, size); },
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
-              }}
-              scroll={{ y: 500, x: true }}
-            />
-          </Card>
-        </>;
+        return (
+            <>
+                <h2 style={{marginBottom: 16}}>Reports</h2>
+                <Card size="small" title="Student Report" style={{marginBottom: 16}}>
+                    <Form layout="inline" onFinish={() => fetchReport(1, reportPageSize)}>
+                        <Form.Item label="Gender">
+                            <Select
+                                options={[
+                                    {label: "MALE", value: "MALE"},
+                                    {label: "FEMALE", value: "FEMALE"},
+                                    {label: "OTHER", value: "OTHER"},
+                                ]}
+                                placeholder="Any"
+                                style={{width: 160}}
+                                value={reportGender}
+                                onChange={(val) => setReportGender(val)}
+                                allowClear
+                            />
+                        </Form.Item>
+                        <Form.Item label="Domain">
+                            <Input
+                                placeholder="e.g. gmail.com"
+                                style={{width: 220}}
+                                value={reportDomain}
+                                onChange={(e) => setReportDomain(e.target.value)}
+                                allowClear
+                            />
+                        </Form.Item>
+                        <Form.Item>
+                            <Space>
+                                <Button type="primary" htmlType="submit">
+                                    Apply
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        setReportGender(undefined);
+                                        setReportDomain("");
+                                        fetchReport(1, reportPageSize);
+                                    }}
+                                >
+                                    Reset
+                                </Button>
+                                <Button
+                                    htmlType="button"
+                                    icon={<DownloadOutlined />}
+                                    onClick={() => {
+                                        const params = new URLSearchParams({sortBy: "id", direction: "asc"});
+                                        if (reportGender) params.set("gender", String(reportGender).toUpperCase());
+                                        if (reportDomain && reportDomain.trim().length)
+                                            params.set("domain", reportDomain.trim());
+                                        const url = `api/v1/students/export?${params.toString()}`;
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        a.download = `students-report-${new Date().toISOString().slice(0, 10)}.csv`;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+                                    }}
+                                >
+                                    Export CSV
+                                </Button>
+                            </Space>
+                        </Form.Item>
+                    </Form>
+                </Card>
+                <Card size="small">
+                    <Table
+                        size="small"
+                        bordered
+                        sticky
+                        dataSource={reportData}
+                        columns={reportColumns}
+                        loading={reportFetching}
+                        rowKey={(s) => s.id}
+                        pagination={{
+                            current: reportPage,
+                            pageSize: reportPageSize,
+                            total: reportTotal,
+                            showSizeChanger: true,
+                            pageSizeOptions: ["10", "20", "50", "100", "200"],
+                            onChange: (page, size) => {
+                                setReportPage(page);
+                                setReportPageSize(size);
+                                fetchReport(page, size);
+                            },
+                            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
+                        }}
+                        scroll={{y: 500, x: true}}
+                    />
+                </Card>
+            </>
+        );
       case 'files-export-students':
         return <>
           <h2>Export Students CSV</h2>
