@@ -44,7 +44,11 @@ export const getStudentsPage = (page = 0, size = 50, sortBy = 'id', direction = 
  */
 export const getStudentsSearch = (page = 0, size = 50, sortBy = 'id', direction = 'asc', gender, domain) => {
     const params = new URLSearchParams({ page: String(page), size: String(size), sortBy, direction });
-    if (gender) params.set('gender', gender);
+    if (gender) {
+        const g = String(gender).trim().toUpperCase();
+        const allowed = new Set(['MALE', 'FEMALE', 'OTHER']);
+        if (allowed.has(g)) params.set('gender', g);
+    }
     if (domain) params.set('domain', domain);
     return fetch(`/api/v1/students/search?${params.toString()}`)
         .then(response => checkStatus(response));

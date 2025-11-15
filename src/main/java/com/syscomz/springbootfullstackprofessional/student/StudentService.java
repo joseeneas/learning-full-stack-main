@@ -96,12 +96,14 @@ public class    StudentService {
     public Page<Student> searchStudents(int page, int size, String sortBy, String direction, Gender gender, String domain) {
         Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
-        return studentRepository.search(gender, (domain == null || domain.isBlank()) ? null : domain, pageable);
+        String genderStr = gender == null ? null : gender.name();
+        return studentRepository.search(genderStr, (domain == null || domain.isBlank()) ? null : domain, pageable);
     }
     public List<Student> searchStudentsAll(String sortBy, String direction, Gender gender, String domain) {
         Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(dir, sortBy);
-        return studentRepository.search(gender, (domain == null || domain.isBlank()) ? null : domain, sort);
+        String genderStr = gender == null ? null : gender.name();
+        return studentRepository.search(genderStr, (domain == null || domain.isBlank()) ? null : domain, sort);
     }
     public void addStudent(Student student) {
         Boolean isEmailTaken = studentRepository.selectExistsEmail(student.getEmail());
@@ -164,9 +166,16 @@ public class    StudentService {
      */
     public java.util.List<DomainCount> getDomainStats() {
         java.util.List<DomainCount> result = new java.util.ArrayList<>();
-        for (StudentRepository.DomainCountView row : studentRepository.countByDomain()) {
-            if (row.getDomain() == null) continue;
-            result.add(new DomainCount(row.getDomain(), row.getCount()));
+        for (Object[] row : studentRepository.countByDomain()) {
+            if (row == null || row.length < 2) continue;
+            final Object domainObj = row[0];
+            final Object countObj = row[1];
+            if (domainObj == null) continue;
+            String domain = String.valueOf(domainObj);
+            long count = 0L;
+            if (countObj instanceof Number) count = ((Number) countObj).longValue();
+            else try { count = Long.parseLong(String.valueOf(countObj)); } catch (NumberFormatException ex) { count = 0L; }
+            result.add(new DomainCount(domain, count));
         }
         return result;
     }

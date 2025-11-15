@@ -26,6 +26,8 @@ package com.syscomz.springbootfullstackprofessional.student;
  * and response size.
  */
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -65,6 +67,7 @@ import org.springframework.http.ResponseEntity;
  */
 public class StudentController {
     private final StudentService studentService;
+    private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
 
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
@@ -115,17 +118,34 @@ public class StudentController {
                                         @RequestParam(defaultValue = "50") int size,
                                         @RequestParam(defaultValue = "id") String sortBy,
                                         @RequestParam(defaultValue = "asc") String direction,
-                                        @RequestParam(required = false) Gender gender,
+                                        @RequestParam(required = false) String gender,
                                         @RequestParam(required = false) String domain) {
-        return studentService.searchStudents(page, size, sortBy, direction, gender, domain);
+        Gender parsedGender = null;
+        if (gender != null && !gender.trim().isEmpty()) {
+            try {
+                parsedGender = Gender.valueOf(gender.trim().toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                parsedGender = null; // treat unknown values as no filter
+            }
+        }
+        logger.info("/api/v1/students/search called - rawGender='{}' parsedGender='{}' domain='{}' page={} size={}'", gender, parsedGender, domain, page, size);
+        return studentService.searchStudents(page, size, sortBy, direction, parsedGender, domain);
     }
 
     @GetMapping(value = "/export", produces = "text/csv")
     public ResponseEntity<String> exportStudentsCsv(@RequestParam(defaultValue = "id") String sortBy,
                                                     @RequestParam(defaultValue = "asc") String direction,
-                                                    @RequestParam(required = false) Gender gender,
+                                                    @RequestParam(required = false) String gender,
                                                     @RequestParam(required = false) String domain) {
-        List<Student> all = studentService.searchStudentsAll(sortBy, direction, gender, domain);
+        Gender parsedGender = null;
+        if (gender != null && !gender.trim().isEmpty()) {
+            try {
+                parsedGender = Gender.valueOf(gender.trim().toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                parsedGender = null;
+            }
+        }
+        List<Student> all = studentService.searchStudentsAll(sortBy, direction, parsedGender, domain);
         StringBuilder sb = new StringBuilder();
         // header
         sb.append("id,name,email,gender\n");

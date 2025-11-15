@@ -55,27 +55,30 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s.gender as gender, COUNT(s) as count FROM Student s GROUP BY s.gender")
     List<GenderCountView> countByGender();
 
-    // Projection for domain counts (lowercased domain and its count)
-    interface DomainCountView {
-        String getDomain();
-        long getCount();
-    }
-
     // Aggregate counts by email domain (part after '@'), lower-cased
-    @Query("SELECT LOWER(SUBSTRING(s.email, LOCATE('@', s.email) + 1)) as domain, COUNT(s) as count " +
-           "FROM Student s WHERE s.email IS NOT NULL AND LOCATE('@', s.email) > 0 " +
-           "GROUP BY LOWER(SUBSTRING(s.email, LOCATE('@', s.email) + 1)) ORDER BY COUNT(s) DESC")
-    List<DomainCountView> countByDomain();
+    // Use native SQL to ensure proper text casting in PostgreSQL and avoid dialect translation issues
+    @Query(value = "SELECT LOWER(split_part(email, '@', 2)) as domain, COUNT(*) as count " +
+                   "FROM student WHERE email IS NOT NULL AND position('@' in email) > 0 " +
+                   "GROUP BY LOWER(split_part(email, '@', 2)) ORDER BY COUNT(*) DESC",
+           nativeQuery = true)
+    List<Object[]> countByDomain();
 
-    // Paged search with optional gender and domain filters
-    @Query("SELECT s FROM Student s WHERE (:gender IS NULL OR s.gender = :gender) AND (:domain IS NULL OR LOWER(s.email) LIKE CONCAT('%@', LOWER(:domain)))")
-    Page<Student> search(@Param("gender") Gender gender,
-                         @Param("domain") String domain,
-                         Pageable pageable);
+        // Paged search with optional gender and domain filters
+        // Use native queries and explicit CAST(email AS TEXT) to avoid bytea/lower issues on Postgres
+            @Query(value = "SELECT * FROM student WHERE (:gender IS NULL OR gender = :gender) " +
+                   "AND (:domain IS NULL OR LOWER(CAST(email AS TEXT)) LIKE CONCAT('%@', LOWER(:domain)))",
+               countQuery = "SELECT COUNT(*) FROM student WHERE (:gender IS NULL OR gender = :gender) " +
+                    "AND (:domain IS NULL OR LOWER(CAST(email AS TEXT)) LIKE CONCAT('%@', LOWER(:domain)))",
+               nativeQuery = true)
+            Page<Student> search(@Param("gender") String gender,
+                     @Param("domain") String domain,
+                     Pageable pageable);
 
-    // Unpaged search variant for exports (with sorting)
-    @Query("SELECT s FROM Student s WHERE (:gender IS NULL OR s.gender = :gender) AND (:domain IS NULL OR LOWER(s.email) LIKE CONCAT('%@', LOWER(:domain)))")
-    List<Student> search(@Param("gender") Gender gender,
-                         @Param("domain") String domain,
-                         org.springframework.data.domain.Sort sort);
+        // Unpaged search variant for exports (with sorting)
+            @Query(value = "SELECT * FROM student WHERE (:gender IS NULL OR gender = :gender) " +
+                   "AND (:domain IS NULL OR LOWER(CAST(email AS TEXT)) LIKE CONCAT('%@', LOWER(:domain)))",
+               nativeQuery = true)
+            List<Student> search(@Param("gender") String gender,
+                     @Param("domain") String domain,
+                     org.springframework.data.domain.Sort sort);
 }
