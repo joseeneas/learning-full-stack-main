@@ -26,8 +26,6 @@ package com.syscomz.springbootfullstackprofessional.student;
  * and response size.
  */
 import org.springframework.web.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -67,7 +65,7 @@ import org.springframework.http.ResponseEntity;
  */
 public class StudentController {
     private final StudentService studentService;
-    private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
+    
 
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
@@ -128,7 +126,7 @@ public class StudentController {
                 parsedGender = null; // treat unknown values as no filter
             }
         }
-        logger.info("/api/v1/students/search called - rawGender='{}' parsedGender='{}' domain='{}' page={} size={}'", gender, parsedGender, domain, page, size);
+        
         return studentService.searchStudents(page, size, sortBy, direction, parsedGender, domain);
     }
 
