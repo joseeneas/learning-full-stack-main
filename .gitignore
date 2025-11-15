@@ -1,4 +1,9 @@
-*.iml
+server.log
+.idea/
+target/
+node_modules/
+/.mvn
+/.vscode*.iml
 *.ipr
 *.iws
 *.jar
