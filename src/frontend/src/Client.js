@@ -98,3 +98,6 @@ export const updateStudent = (studentId, student) =>
 // Global gender stats
 export const getGenderStats = () =>
     fetch('/api/v1/students/stats/gender').then(checkStatus);
+
+export const getDomainStats = () =>
+    fetch('/api/v1/students/stats/domains').then(checkStatus);

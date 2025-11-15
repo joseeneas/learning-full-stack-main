@@ -55,6 +55,18 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s.gender as gender, COUNT(s) as count FROM Student s GROUP BY s.gender")
     List<GenderCountView> countByGender();
 
+    // Projection for domain counts (lowercased domain and its count)
+    interface DomainCountView {
+        String getDomain();
+        long getCount();
+    }
+
+    // Aggregate counts by email domain (part after '@'), lower-cased
+    @Query("SELECT LOWER(SUBSTRING(s.email, LOCATE('@', s.email) + 1)) as domain, COUNT(s) as count " +
+           "FROM Student s WHERE s.email IS NOT NULL AND LOCATE('@', s.email) > 0 " +
+           "GROUP BY LOWER(SUBSTRING(s.email, LOCATE('@', s.email) + 1)) ORDER BY COUNT(s) DESC")
+    List<DomainCountView> countByDomain();
+
     // Paged search with optional gender and domain filters
     @Query("SELECT s FROM Student s WHERE (:gender IS NULL OR s.gender = :gender) AND (:domain IS NULL OR LOWER(s.email) LIKE CONCAT('%@', LOWER(:domain)))")
     Page<Student> search(@Param("gender") Gender gender,

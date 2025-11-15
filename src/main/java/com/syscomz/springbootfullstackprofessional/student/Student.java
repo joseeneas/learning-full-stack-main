@@ -30,7 +30,6 @@ package com.syscomz.springbootfullstackprofessional.student;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 // Lombok added back to reduce boilerplate; custom equals/hashCode retained for JPA safety.
 import jakarta.persistence.*;
@@ -71,7 +70,6 @@ import jakarta.validation.constraints.NotNull;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table
@@ -180,6 +178,11 @@ public class Student {
         this.name = name;
         this.email = email;
         this.gender = gender;
+    }
+
+    // Explicit no-arg constructor required by JPA
+    public Student() {
+        // no-op
     }
 
     // Explicit accessors to ensure availability even if Lombok processing is disabled

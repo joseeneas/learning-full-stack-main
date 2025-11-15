@@ -2,11 +2,11 @@
   App.jsx
   Main App component that manages student data and renders the application layout.
 */
-import { deleteStudent, getStudentsPage, updateStudent, addNewStudent, getGenderStats, getStudentsSearch } from "./Client";
+import { deleteStudent, getStudentsPage, updateStudent, addNewStudent, getGenderStats, getStudentsSearch, getDomainStats } from "./Client";
 import StudentDrawerForm                                from "./StudentDrawerForm.jsx";
 import { errorNotification, successNotification }       from "./Notification";
 import './App.css';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Layout,     Menu, Table,
   Spin,       Empty,
@@ -138,7 +138,8 @@ function App() {
   const [fetching       , setFetching]        = useState(true);
   const [totalStudents  , setTotalStudents]   = useState(0);
   const [currentPage    , setCurrentPage]     = useState(1);
-  const [genderStats    , setGenderStats]     = useState(null);
+    const [genderStats    , setGenderStats     ] = useState(null);
+    const [domainStats    , setDomainStats     ] = useState(null);
   const [reportData     , setReportData]      = useState([]);
   const [reportFetching , setReportFetching]  = useState(false);
   const [reportTotal    , setReportTotal]     = useState(0);
@@ -147,6 +148,35 @@ function App() {
   const [reportGender   , setReportGender]    = useState();
   const [reportDomain   , setReportDomain]    = useState('');
   const stats = useStudentStats(students);
+  // Compute a clear, deterministic "top domains" list:
+  // - Accepts either an array of domain strings or aggregated objects {domain, count, percentage}
+  // - Sorts by count desc, tie-break by domain name, returns top 10
+  const topDomains = useMemo(() => {
+    const raw = (Array.isArray(domainStats) && domainStats.length) ? domainStats : stats?.domains;
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+
+    // Helper to ensure entries are {domain, count}
+    let entries = [];
+    if (typeof raw[0] === 'string') {
+      const counts = raw.reduce((map, d) => {
+        if (!d) return map;
+        map[d] = (map[d] || 0) + 1;
+        return map;
+      }, Object.create(null));
+      entries = Object.entries(counts).map(([domain, count]) => ({ domain, count }));
+    } else {
+      entries = raw.map(it => ({ domain: it.domain, count: it.count ?? 0, percentage: it.percentage }));
+    }
+
+    const totalForPercent = entries.reduce((s, e) => s + (e.count || 0), 0) || 1;
+
+    entries.sort((a, b) => (b.count || 0) - (a.count || 0) || (a.domain || '').localeCompare(b.domain || ''));
+
+    return entries.slice(0, 10).map(e => ({
+      ...e,
+      percentage: e.percentage != null ? e.percentage : +( (totalStudents ? (e.count * 100 / totalStudents) : (e.count * 100 / totalForPercent)) ).toFixed(1)
+    }));
+  }, [stats?.domains, totalStudents, domainStats]);
   const jumpToReportsWithDomain = (domain) => {
     if (!domain) return;
     setReportDomain(domain);
@@ -178,6 +208,7 @@ function App() {
         setTotalStudents(data.totalElements);
         setCurrentPage(data.number + 1);
         refreshGenderStats();
+        refreshDomainStats();
       }).catch(err => {
         console.log(err.response);
         err.response.json().then(res => {
@@ -193,6 +224,12 @@ function App() {
       .then(r => r.json())
       .then(data => setGenderStats(data))
       .catch(err => { console.log(err.response); });
+  };
+  const refreshDomainStats = () => {
+    getDomainStats()
+      .then(r => r.json())
+      .then(data => setDomainStats(data))
+      .catch(err => { console.log(err.response); setDomainStats(null); });
   };
   const fetchReport = (page = reportPage, size = reportPageSize) => {
     setReportFetching(true);
@@ -434,8 +471,9 @@ function App() {
               </Col>
               <Col xs={24} md={12}>
                 <Card size="small" title="Top Email Domains" bodyStyle={{ height: 260 }}>
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Showing top 10 email domains by occurrence (count)</div>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stats.domains.slice(0,10)} margin={{ bottom: 56, left: 8, right: 8, top: 8 }}>
+                    <BarChart data={topDomains} margin={{ bottom: 56, left: 8, right: 8, top: 8 }}>
                       <XAxis
                         dataKey="domain"
                         interval={0}
@@ -446,9 +484,9 @@ function App() {
                       />
                       <YAxis allowDecimals={false} />
                       <RechartsTooltip formatter={(value) => [value, 'Count']} labelFormatter={(label) => `Domain: ${label}`} />
-                      <Legend verticalAlign="top" align="left" content={() => <DomainLegend items={stats.domains.slice(0,10)} />} />
+                      <Legend verticalAlign="top" align="left" content={() => <DomainLegend items={topDomains} />} />
                       <Bar dataKey="count" name="Top Domains" onClick={(data) => jumpToReportsWithDomain(data && data.payload && data.payload.domain)} cursor="pointer">
-                        {stats.domains.slice(0,10).map((entry, index) => (
+                        {topDomains.map((entry, index) => (
                           <Cell key={entry.domain} fill={DOMAIN_COLORS[index % DOMAIN_COLORS.length]} />
                         ))}
                       </Bar>
@@ -472,10 +510,11 @@ function App() {
               ))}
             </Row>
             <Divider orientation="left">Top Email Domains</Divider>
+            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Showing top 10 email domains by occurrence (count)</div>
             <List
               size="small"
               bordered
-              dataSource={stats.domains.slice(0, 10)}
+              dataSource={topDomains}
               renderItem={item => (
                 <List.Item onClick={() => jumpToReportsWithDomain(item.domain)} style={{ cursor: 'pointer' }}>
                   <Space style={{ width: '100%', justifyContent: 'space-between' }}>

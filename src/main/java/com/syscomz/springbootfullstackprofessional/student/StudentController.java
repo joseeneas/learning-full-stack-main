@@ -105,6 +105,11 @@ public class StudentController {
         return studentService.getGenderStats();
     }
 
+    @GetMapping("/stats/domains")
+    public java.util.List<DomainCount> getDomainStats() {
+        return studentService.getDomainStats();
+    }
+
     @GetMapping("/search")
     public Page<Student> searchStudents(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "50") int size,

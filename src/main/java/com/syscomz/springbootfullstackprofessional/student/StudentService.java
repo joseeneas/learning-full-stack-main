@@ -158,4 +158,16 @@ public class    StudentService {
         }
         return result;
     }
+
+    /**
+     * Returns aggregated counts of students grouped by email domain (lowercased).
+     */
+    public java.util.List<DomainCount> getDomainStats() {
+        java.util.List<DomainCount> result = new java.util.ArrayList<>();
+        for (StudentRepository.DomainCountView row : studentRepository.countByDomain()) {
+            if (row.getDomain() == null) continue;
+            result.add(new DomainCount(row.getDomain(), row.getCount()));
+        }
+        return result;
+    }
 }
