@@ -42,6 +42,24 @@ import {
 } from '@ant-design/icons';
 
 const { Header, Content, Footer, Sider } = Layout;
+
+/**
+ * Navigation menu items configuration for the application sidebar.
+ * Defines the hierarchical structure of menu items with their keys, labels, icons, and sub-items.
+ * 
+ * @type {Array<Object>}
+ * @property {string} key - Unique identifier for the menu item
+ * @property {string} label - Display text for the menu item
+ * @property {React.ReactElement} icon - Ant Design icon component
+ * @property {Array<Object>} [children] - Optional array of sub-menu items with the same structure
+ * 
+ * @example
+ *  Top-level items include:
+ *  - Dashboard: Main analytics view
+ *  - Students: Student management with add, update, and delete operations
+ *  - Reports: Reporting functionality
+ *  - Files: Import/export operations for student data
+ */
 const items = [
   getItem('Dashboard', 'dashboard', <PieChartOutlined />),
   getItem('Students', 'students', <TeamOutlined />, [
@@ -55,7 +73,36 @@ const items = [
     getItem('Import Students CSV', 'files-import-students', <UploadOutlined />),
   ]),
 ];
+
+/**
+ * Creates a menu item object with the specified properties.
+ * 
+ * @param {React.ReactNode} label - The display text or element for the menu item
+ * @param {string} key - A unique identifier for the menu item
+ * @param {React.ReactNode} icon - The icon element to display alongside the label
+ * @param {Array} children - An array of child menu items for nested menus
+ * @returns {Object} An object containing key, icon, children, and label properties
+ */
 function getItem(label, key, icon, children) { return { key, icon, children, label } }
+
+/**
+ * Renders an avatar component that displays initials derived from a name.
+ * 
+ * @component
+ * @param {Object} props - The component props
+ * @param {string} props.name - The name to extract initials from. First and last characters are used.
+ * @returns {JSX.Element} An Avatar component displaying either:
+ *   - A UserOutlined icon if the name is empty/invalid
+ *   - The first and last characters of the name as initials
+ * 
+ * @example
+ * Returns avatar with "JD"
+ * <TheAvatar name="John Doe" />
+ * 
+ * @example
+ * Returns avatar with user icon
+ * <TheAvatar name="" />
+ */
 const TheAvatar = ({ name }) => {
   const safe = typeof name === 'string' ? name.trim() : '';
   if (!safe) {
@@ -67,17 +114,60 @@ const TheAvatar = ({ name }) => {
   return <Avatar>{`${first}${last}`}</Avatar>
 }
 
+/**
+ * Array of predefined colors used for domain visualization or categorization.
+ * Contains 10 distinct hex color codes for visual differentiation.
+ * 
+ * @type {string[]}
+ * @constant
+ * 
+ * Colors include:
+ * - Blue (#1677ff)
+ * - Cyan (#13c2c2)
+ * - Magenta (#eb2f96)
+ * - Orange (#faad14)
+ * - Purple (#722ed1)
+ * - Green (#52c41a)
+ * - Red-Orange (#fa541c)
+ * - Dark Blue (#2f54eb)
+ * - Lime (#a0d911)
+ * - Light Cyan (#5cdbd3)
+ */
 const DOMAIN_COLORS = ['#1677ff', '#13c2c2', '#eb2f96', '#faad14', '#722ed1', '#52c41a', '#fa541c', '#2f54eb', '#a0d911', '#5cdbd3'];
+
+/**
+ * A component that displays a horizontal legend for domains with color indicators.
+ * 
+ * @param {Object} props - The component props
+ * @param {Array<{domain: string}>} props.items - An array of items where each item contains a domain property.
+ *                                                 Colors are assigned cyclically from DOMAIN_COLORS based on array index.
+ * @returns {JSX.Element} A flex container with colored squares and domain labels
+ */
 const DomainLegend = ({ items }) => (
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+  <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 12}}>
     {items.map((it, idx) => (
       <span key={it.domain} style={{ display: 'flex', alignItems: 'center', marginRight: 12 }}>
         <span style={{ width: 10, height: 10, backgroundColor: DOMAIN_COLORS[idx % DOMAIN_COLORS.length], display: 'inline-block', marginRight: 6, borderRadius: 2 }} />
-        <span style={{ fontSize: 12 }}>{it.domain}</span>
+        <span style={{ fontSize: 10 }}>{it.domain}</span>
       </span>
     ))}
   </div>
 );
+
+/**
+ * Removes a student from the system by their ID.
+ * 
+ * @param {string|number} studentId - The unique identifier of the student to be deleted
+ * @param {Function} callback - A callback function to be executed after successful deletion
+ * @returns {void}
+ * 
+ * @description
+ * This function performs the following actions:
+ * - Calls the deleteStudent API with the provided studentId
+ * - On success: displays a success notification and executes the callback function
+ * - On error: logs the error response, parses the error details, and displays an error notification
+ *   with the error message, status code, and status text
+ */
 const removeStudent = (studentId, callback) => {
   deleteStudent(studentId).then(() => {
     successNotification("Student deleted", `Student with ${studentId} was deleted`);
@@ -93,6 +183,23 @@ const removeStudent = (studentId, callback) => {
     })
   });
 }
+
+/**
+ * Generates the column configuration for the students table.
+ * 
+ * @param {Function} fetchStudents - Callback function to refresh the students list after an operation
+ * @param {Function} openEdit      - Callback function to open the edit modal/form with the selected student data
+ * @returns {Array<Object>}        - Array of column configuration objects for Ant Design Table component
+ * 
+ * @property {string} title      - The column header text
+ * @property {string} dataIndex  - The key to access data in the student object
+ * @property {string} key        - Unique identifier for the column
+ * @property {Function} [render] - Optional custom render function for the column cell
+ * 
+ * @example
+ * const studentColumns = columns(fetchStudents, handleEdit);
+ * <Table columns={studentColumns} dataSource={students} />
+ */
 const columns = (fetchStudents, openEdit) => [
   {
     title     : 'Initials',
@@ -122,8 +229,52 @@ const columns = (fetchStudents, openEdit) => [
       </Space>
   }
 ];
+
 const antIcon = <LoadingOutlined style={{ fontSize: 24, }} spin />;
 
+/**
+ * Main application component that manages the student management system.
+ * 
+ * Provides a comprehensive interface for:
+ * - Viewing and managing students (CRUD operations)
+ * - Dashboard with statistics and visualizations (gender distribution, email domains)
+ * - Reports with filtering capabilities (by gender and email domain)
+ * - CSV import/export functionality
+ * - Team management placeholder
+ * 
+ * @component
+ * @returns {JSX.Element} The main application layout with sidebar navigation and dynamic content
+ * 
+ * @description
+ * Features include:
+ * - Paginated student table with inline editing
+ * - Real-time statistics (gender distribution, top email domains)
+ * - Interactive charts (pie chart for gender, bar chart for domains)
+ * - CSV export/import for bulk operations
+ * - Advanced filtering and search in reports
+ * - Responsive layout with collapsible sidebar
+ * - Local storage persistence for page size preferences
+ * 
+ * State Management:
+ * @state {boolean} collapsed                - Sidebar collapse state
+ * @state {string} selectedMenuKey           - Currently selected menu item
+ * @state {boolean} showDrawer               - Student form drawer visibility
+ * @state {Object|null} editingStudent       - Student being edited
+ * @state {Array} students                   - List of students for current page
+ * @state {boolean} fetching                 - Loading state for student data
+ * @state {number} totalStudents             - Total count of students
+ * @state {number} currentPage               - Current page number
+ * @state {Object|null} genderStats          - Gender distribution statistics
+ * @state {Array|null} domainStats           - Email domain statistics
+ * @state {Array} reportData                 - Report table data
+ * @state {boolean} reportFetching           - Loading state for reports
+ * @state {number} reportTotal               - Total report entries
+ * @state {number} reportPage                - Current report page
+ * @state {number} reportPageSize            - Report page size
+ * @state {string|undefined} reportGender    - Report gender filter
+ * @state {string} reportDomain              - Report domain filter
+ * @state {number} pageSize                  - Students table page size
+ */
 function App() {
   useEffect(() => {
     console.log("Component is mounted");
@@ -148,13 +299,24 @@ function App() {
   const [reportGender   , setReportGender]    = useState();
   const [reportDomain   , setReportDomain]    = useState('');
   const stats = useStudentStats(students);
-  // Compute a clear, deterministic "top domains" list:
-  // - Accepts either an array of domain strings or aggregated objects {domain, count, percentage}
-  // - Sorts by count desc, tie-break by domain name, returns top 10
+  
+ 
+  /**
+   * Computes the top 10 domains with their counts and percentages.
+   *
+   * Accepts domain data in two formats:
+   * - Array of strings: counts occurrences and converts to {domain, count} objects
+   * - Array of objects: expects {domain, count, percentage?} structure
+   *
+   * Calculates percentages based on totalStudents if available, otherwise uses the sum of counts.
+   * Results are sorted by count (descending) and then alphabetically by domain name.
+   *
+   * @type {Array<{domain: string, count: number, percentage: number}>}
+   * @returns {Array<{domain: string, count: number, percentage: number}>} Top 10 domains with their statistics
+   */
   const topDomains = useMemo(() => {
     const raw = (Array.isArray(domainStats) && domainStats.length) ? domainStats : stats?.domains;
     if (!Array.isArray(raw) || raw.length === 0) return [];
-
     // Helper to ensure entries are {domain, count}
     let entries = [];
     if (typeof raw[0] === 'string') {
@@ -177,6 +339,7 @@ function App() {
       percentage: e.percentage != null ? e.percentage : +( (totalStudents ? (e.count * 100 / totalStudents) : (e.count * 100 / totalForPercent)) ).toFixed(1)
     }));
   }, [stats?.domains, totalStudents, domainStats]);
+  
   const jumpToReportsWithDomain = (domain) => {
     if (!domain) return;
     setReportDomain(domain);
@@ -458,7 +621,7 @@ function App() {
             <Divider orientation="left">Gender and Domain Distribution</Divider>
             <Row gutter={[16,16]}>
               <Col xs={24} md={12}>
-                <Card size="small" bodyStyle={{ height: 260 }}>
+                <Card size="small" title="Gender Distribution" styles={{ body: { height: 320 } }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={(genderStats ? Object.entries(genderStats) : []).map(([g,c]) => ({ name:g, value:c, percent: totalStudents ? +(c * 100 / totalStudents).toFixed(1) : 0 }))} dataKey="value" nameKey="name" outerRadius={80} label={(d) => `${d.name} ${d.percent}%`}>
@@ -470,17 +633,17 @@ function App() {
                 </Card>
               </Col>
               <Col xs={24} md={12}>
-                <Card size="small" title="Top Email Domains" bodyStyle={{ height: 260 }}>
+                <Card size="small" title="Top Email Domains" styles={{ body: { height: 320 } }}>
                   <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Showing top 10 email domains by occurrence (count)</div>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={topDomains} margin={{ bottom: 56, left: 8, right: 8, top: 8 }}>
+                    <BarChart data={topDomains} margin={{ bottom: 56, left: 8, right: 8, top: 12 }}>
                       <XAxis
                         dataKey="domain"
                         interval={0}
                         angle={-35}
                         textAnchor="end"
                         height={56}
-                        tick={{ fontSize: 11 }}
+                        tick={{ fontSize: 10 }}
                       />
                       <YAxis allowDecimals={false} />
                       <RechartsTooltip formatter={(value) => [value, 'Count']} labelFormatter={(label) => `Domain: ${label}`} />
@@ -497,17 +660,23 @@ function App() {
             </Row>
             <Divider orientation="left">Genders</Divider>
             <Row gutter={[16,16]}>
-              {(genderStats ? Object.entries(genderStats) : []).map(([g,count]) => (
-                <Col key={g} xs={12} sm={8} md={6} lg={4}>
-                  <Card size="small" bodyStyle={{ padding: 12 }}>
-                    <Tag color="blue" style={{ marginBottom: 4 }}>{g}</Tag>
-                    <Space direction="vertical" size={4}>
-                      <Badge count={count} showZero />
-                      <Tag color="geekblue" style={{ margin: 0 }}>{totalStudents ? +(count * 100 / totalStudents).toFixed(1) : 0}%</Tag>
-                    </Space>
-                  </Card>
-                </Col>
-              ))}
+              {Object.entries(genderStats || {}).map(([g, count]) => {
+                const pct = totalStudents ? (count * 100) / totalStudents : 0;
+                const displayPct = Number(pct.toFixed(1));
+                return (
+                    <Col key={g} xs={24} sm={12} md={8} lg={6}>
+                      <Card className="gender-card" size="small" styles={{ body: { padding: 14, height: 48, width: '100%' } }}>
+                        <div className="gender-card-content">
+                          <div className="gender-left">
+                            <Tag className="gender-tag" color="blue" style={{ marginBottom: 0 }}>{g}</Tag>
+                            <Badge className="gender-badge" count={count} showZero />
+                          </div>
+                          <div className="gender-right"><Tag color="geekblue" style={{ margin: 0 }}>{displayPct}%</Tag></div>
+                        </div>
+                      </Card>
+                  </Col>
+                );
+              })}
             </Row>
             <Divider orientation="left">Top Email Domains</Divider>
             <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Showing top 10 email domains by occurrence (count)</div>

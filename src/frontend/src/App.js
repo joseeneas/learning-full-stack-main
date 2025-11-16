@@ -1,3 +1,0 @@
-/*
-Replaced by app.jsx
-*/

@@ -36,7 +36,7 @@
   pointer-events: none;
 }
 /* 
- * This media query checks if the user has not indicated a preference for reduced motion. If they haven’t, it applies an infinite rotation 
+ * This media query checks if the user has not indicated a preference for reduced motion. If they haven't, it applies an infinite rotation 
  * animation to elements with the class App-logo. The animation named App-logo-spin runs continuously with a duration of 20 seconds per 
  * complete rotation, using a linear timing function for consistent speed.
 */
@@ -48,7 +48,7 @@
 /* 
  * This rule styles elements with the class App-header. It sets a dark background color, makes the header take at least the full viewport 
  * height, and uses flexbox to center its content both vertically and horizontally. The font size is responsive, calculated as 10 pixels plus 
- * 2% of the viewport’s smaller dimension (width or height). The text color is set to white for contrast against the dark background.
+ * 2% of the viewport's smaller dimension (width or height). The text color is set to white for contrast against the dark background.
 */
 .App-header {
   background-color: #282c34;
@@ -99,4 +99,43 @@
 /* Pointer cursor for clickable rows */
 .clickable-row {
   cursor: pointer;
+}
+
+/* Responsive styles for gender cards */
+.gender-card .ant-card-body {
+  padding: 14px;
+  height: 88px;
+}
+.gender-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.gender-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gender-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@media (max-width: 480px) {
+  .gender-card .ant-card-body {
+    padding: 10px;
+    height: 68px;
+  }
+  .gender-left { gap: 6px; }
+  .gender-tag, .gender-right .ant-tag { font-size: 12px; padding: 0 6px; }
+  .gender-badge .ant-badge-count { font-size: 12px; min-width: 20px; height: 20px; line-height: 20px; }
+}
+
+@media (max-width: 360px) {
+  .gender-card-content { flex-wrap: wrap; align-items: center; }
+  .gender-right { width: 100%; text-align: right; margin-top: 6px; }
 }
