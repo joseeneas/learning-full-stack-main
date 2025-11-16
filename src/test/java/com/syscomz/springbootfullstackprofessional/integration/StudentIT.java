@@ -1,6 +1,7 @@
 package com.syscomz.springbootfullstackprofessional.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.syscomz.springbootfullstackprofessional.student.Gender;
@@ -108,6 +109,59 @@ public class StudentIT {
         resultActions.andExpect(status().isOk());
         boolean exists = studentRepository.existsById(id);
         assertThat(exists).isFalse();
+    }
+
+    @SuppressWarnings("null")
+    @Test
+    void searchByGenderReturnsOnlyRequestedGender() throws Exception {
+        // given - create students with different genders
+        String name1 = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
+        String email1 = String.format("%s@syscomz.com", name1.replace(" ", "").toLowerCase());
+        Student male = new Student(name1, email1, Gender.MALE);
+
+        String name2 = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
+        String email2 = String.format("%s@syscomz.com", name2.replace(" ", "").toLowerCase());
+        Student female = new Student(name2, email2, Gender.FEMALE);
+
+        String name3 = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
+        String email3 = String.format("%s@syscomz.com", name3.replace(" ", "").toLowerCase());
+        Student other = new Student(name3, email3, Gender.OTHER);
+
+        mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(male)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(female)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(other)))
+                .andExpect(status().isOk());
+
+        // when - search by gender=MALE
+        MvcResult mvcResult = mockMvc.perform(get("/api/v1/students/search")
+                        .param("gender", "MALE")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        JsonNode root = objectMapper.readTree(content);
+        JsonNode contentNode = root.get("content");
+        List<Student> students = objectMapper.convertValue(
+                contentNode,
+                new TypeReference<List<Student>>() {}
+        );
+
+        // then - all returned students must have gender == MALE
+        assertThat(students.size()).isGreaterThan(0);
+        for (Student s : students) {
+            assertThat(s.getGender()).isEqualTo(Gender.MALE);
+        }
     }
 
 

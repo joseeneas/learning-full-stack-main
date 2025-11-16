@@ -264,8 +264,28 @@ curl -L -o students.csv "http://localhost:8080/api/v1/students/export?gender=FEM
 - Commands: `npm run dev` (dev), `npm run build` (production build), `npm run preview` (serve built files locally).
 - CORS: include `http://localhost:5173` in `app.cors.origins` when running backend and frontend separately.
 
-## Software Description
+## Repository History & Git LFS
 
+- **Context:** The repository recently migrated a large committed frontend binary into Git LFS to reduce the main history size and improve clone performance.
+- **If you're a collaborator:** the safest way to sync is to re-clone the repository (recommended):
+
+```bash
+git clone <repo-url>
+```
+
+- **If you must update an existing clone**, run these commands to reset to the rewritten `main` and fetch LFS objects:
+
+```bash
+git fetch origin
+git reset --hard origin/main
+git lfs pull
+```
+
+- **Notes:** Ensure Git LFS is installed (`git lfs install`) before `git lfs pull`. If you have local work you don't want to lose, stash or create a branch and back it up before resetting.
+
+This note documents the LFS migration so teammates understand the recommended workflow after the history rewrite.
+
+## Software Description
 - Describe the software main aim
 
 ## Software Architecture Description

@@ -73,7 +73,7 @@ class StudentRepositoryTest {
         underTest.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE));
 
         // when
-        java.util.List<Student> list = underTest.search(Gender.FEMALE, null, Sort.by("id"));
+        java.util.List<Student> list = underTest.search("FEMALE", null, Sort.by("id"));
 
         // then
         assertThat(list.size()).isEqualTo(2);
