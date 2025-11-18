@@ -286,6 +286,7 @@ git lfs pull
 This note documents the LFS migration so teammates understand the recommended workflow after the history rewrite.
 
 ## Software Description
+
 - Describe the software main aim
 
 ## Software Architecture Description

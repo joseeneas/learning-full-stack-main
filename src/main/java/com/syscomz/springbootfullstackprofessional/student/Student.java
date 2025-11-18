@@ -1,10 +1,7 @@
 /**
  * Package declaration for student-related classes in the Spring Boot full stack professional application.
  * This package contains domain models, services, repositories, and controllers related to student management.
- * 
- * @since 1.0
- * @author syscomz  
- * 
+ *
  * This package declaration places the Student type in the student domain of your application. 
  * Keeping entities under com.syscomz.springbootfullstackprofessional.student aligns with Spring Boot’s 
  * component scanning conventions, so JPA entities and related components are discovered when your 
@@ -27,7 +24,6 @@
  * Ensure your application’s base package matches this package structure so entity scanning works as expected.
  */
 package com.syscomz.springbootfullstackprofessional.student;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
@@ -36,7 +32,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 /**
  * Entity class representing a Student in the system.
  * This class is mapped to a database table using JPA annotations and follows
@@ -63,10 +58,6 @@ import jakarta.validation.constraints.NotNull;
  *   <li>Backend validation using Bean Validation annotations (@NotBlank, @Email, @NotNull)</li>
  *   <li>Database validation using JPA column constraints (nullable, unique)</li>
  * </ul>
- *
- * @author syscomz
- * @version 1.0
- * @see Gender
  */
 @Getter
 @Setter

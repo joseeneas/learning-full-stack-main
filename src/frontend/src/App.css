@@ -90,17 +90,14 @@
     transform: rotate(360deg);
   }
 }
-
 /* Highlight selected row in update mode */
 .editing-row td {
   background-color: #e6f7ff !important;
 }
-
 /* Pointer cursor for clickable rows */
 .clickable-row {
   cursor: pointer;
 }
-
 /* Responsive styles for gender cards */
 .gender-card .ant-card-body {
   padding: 14px;
@@ -124,7 +121,6 @@
   align-items: center;
   justify-content: flex-end;
 }
-
 @media (max-width: 480px) {
   .gender-card .ant-card-body {
     padding: 10px;
@@ -134,7 +130,6 @@
   .gender-tag, .gender-right .ant-tag { font-size: 12px; padding: 0 6px; }
   .gender-badge .ant-badge-count { font-size: 12px; min-width: 20px; height: 20px; line-height: 20px; }
 }
-
 @media (max-width: 360px) {
   .gender-card-content { flex-wrap: wrap; align-items: center; }
   .gender-right { width: 100%; text-align: right; margin-top: 6px; }

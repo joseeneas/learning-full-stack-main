@@ -6,7 +6,6 @@
  * @author syscomz
  */
 package com.syscomz.springbootfullstackprofessional.student;
-
 /*
  * Enumeration representing the gender of a student.
  * This enum can be used to specify the gender attribute in the Student class.
@@ -24,9 +23,6 @@ package com.syscomz.springbootfullstackprofessional.student;
  * compatible for producers, but consumers that switch over specific cases may need updates. Consider a sensible default handling to avoid surprises.
  * Avoid using null to represent “unknown”; prefer an explicit value (e.g., OTHER or UNKNOWN) or handle absence at the API boundary to keep domain 
  * logic clear.
- * 
- * @since 1.0
- * @author syscomz  
  */
 public enum Gender {
     MALE,

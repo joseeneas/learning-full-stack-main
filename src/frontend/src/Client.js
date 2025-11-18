@@ -1,5 +1,4 @@
 import fetch from 'unfetch';
-
 /**
  * Checks if the HTTP response status is OK (2xx).
  * 
@@ -9,6 +8,7 @@ import fetch from 'unfetch';
  */
 const checkStatus = response => {
     if (response.ok) {
+        console.log('API response OK',response);
         return response;
     }
     // convert non-2xx HTTP responses into errors:
@@ -29,7 +29,15 @@ const checkStatus = response => {
 export const getAllStudents = () =>
     fetch("/api/v1/students")
         .then(response => checkStatus(response));
-
+/**
+ * Fetches a paginated list of students from the API.
+ * 
+ * @param {number} [page=0] - The page number to retrieve (zero-indexed)
+ * @param {number} [size=50] - The number of students per page
+ * @param {string} [sortBy='id'] - The field to sort by
+ * @param {string} [direction='asc'] - The sort direction ('asc' or 'desc')
+ * @returns {Promise} A promise that resolves with the paginated student data after status check
+ */
 export const getStudentsPage = (page = 0, size = 50, sortBy = 'id', direction = 'asc') =>
     fetch(`/api/v1/students/page?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`)
         .then(response => checkStatus(response));

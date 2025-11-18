@@ -10,7 +10,6 @@
  * refactoring safer.
  */
 package com.syscomz.springbootfullstackprofessional.student;
-
 /*
  * These imports pull in Spring MVC web annotation types (via the wildcard) such as @RestController, 
  * @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PathVariable, 
@@ -34,7 +33,6 @@ import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
 /*
  * The StudentController class is annotated with @RestController, marking it as a Spring MVC
  * controller where every method’s return value is automatically serialized to the HTTP response body.
@@ -65,17 +63,13 @@ import org.springframework.http.ResponseEntity;
  */
 public class StudentController {
     private final StudentService studentService;
-    
-
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
-
     @GetMapping
     public List<Student> getAllStudents() {
         return studentService.getAllStudents();
     }
-
     @GetMapping("/page")
     public Page<Student> getStudentsPaged(@RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "50") int size,
@@ -83,34 +77,28 @@ public class StudentController {
                                           @RequestParam(defaultValue = "asc") String direction) {
         return studentService.getStudentsPage(page, size, sortBy, direction);
     }
-
     @PostMapping
     public void addStudent(@Valid @RequestBody Student student) {
         studentService.addStudent(student);
     }
-
     @DeleteMapping(path = "{studentId}")
     public void deleteStudent(@PathVariable("studentId") Long studentId) {
         studentService.deleteStudent(studentId);
     }
-
     @PutMapping(path = "{studentId}")
     public void updateStudent(
             @PathVariable("studentId") Long studentId,
             @Valid @RequestBody Student student) {
         studentService.updateStudent(studentId, student);
     }
-
     @GetMapping("/stats/gender")
     public Map<String, Long> getGenderStats() {
         return studentService.getGenderStats();
     }
-
     @GetMapping("/stats/domains")
     public java.util.List<DomainCount> getDomainStats() {
         return studentService.getDomainStats();
     }
-
     @GetMapping("/search")
     public Page<Student> searchStudents(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "50") int size,
@@ -126,10 +114,8 @@ public class StudentController {
                 parsedGender = null; // treat unknown values as no filter
             }
         }
-        
         return studentService.searchStudents(page, size, sortBy, direction, parsedGender, domain);
     }
-
     @GetMapping(value = "/export", produces = "text/csv")
     public ResponseEntity<String> exportStudentsCsv(@RequestParam(defaultValue = "id") String sortBy,
                                                     @RequestParam(defaultValue = "asc") String direction,
@@ -161,7 +147,6 @@ public class StudentController {
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(sb.toString());
     }
-
     private static String csv(Object value) {
         if (value == null) return "";
         String s = String.valueOf(value);

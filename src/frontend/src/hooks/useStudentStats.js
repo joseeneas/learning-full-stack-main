@@ -1,7 +1,7 @@
 // useStudentStats.js
 // Custom hook to derive student statistics (counts and percentages) memoized.
+// Supports gender normalization and email domain statistics.
 import { useMemo } from 'react';
-
 /**
  * Normalizes a gender value to a standardized format.
  * 
@@ -25,7 +25,6 @@ function normalizeGender(value) {
   if (u === 'O' || u === 'OTHER' || u === 'NON-BINARY' || u === 'NONBINARY' || u === 'NB') return 'Other';
   return 'Unknown';
 }
-
 /**
  * Custom React hook that computes statistical information about a collection of students.
  * 

@@ -40,9 +40,7 @@ import {
   DownloadOutlined,
   PrinterOutlined
 } from '@ant-design/icons';
-
 const { Header, Content, Footer, Sider } = Layout;
-
 /**
  * Navigation menu items configuration for the application sidebar.
  * Defines the hierarchical structure of menu items with their keys, labels, icons, and sub-items.
@@ -73,7 +71,6 @@ const items = [
     getItem('Import Students CSV', 'files-import-students', <UploadOutlined />),
   ]),
 ];
-
 /**
  * Creates a menu item object with the specified properties.
  * 
@@ -84,7 +81,6 @@ const items = [
  * @returns {Object} An object containing key, icon, children, and label properties
  */
 function getItem(label, key, icon, children) { return { key, icon, children, label } }
-
 /**
  * Renders an avatar component that displays initials derived from a name.
  * 
@@ -113,7 +109,6 @@ const TheAvatar = ({ name }) => {
   const last = chars.length > 1 ? chars[chars.length - 1] : chars[0];
   return <Avatar>{`${first}${last}`}</Avatar>
 }
-
 /**
  * Array of predefined colors used for domain visualization or categorization.
  * Contains 10 distinct hex color codes for visual differentiation.
@@ -134,7 +129,6 @@ const TheAvatar = ({ name }) => {
  * - Light Cyan (#5cdbd3)
  */
 const DOMAIN_COLORS = ['#1677ff', '#13c2c2', '#eb2f96', '#faad14', '#722ed1', '#52c41a', '#fa541c', '#2f54eb', '#a0d911', '#5cdbd3'];
-
 /**
  * A component that displays a horizontal legend for domains with color indicators.
  * 
@@ -153,7 +147,6 @@ const DomainLegend = ({ items }) => (
     ))}
   </div>
 );
-
 /**
  * Removes a student from the system by their ID.
  * 
@@ -183,7 +176,6 @@ const removeStudent = (studentId, callback) => {
     })
   });
 }
-
 /**
  * Generates the column configuration for the students table.
  * 
@@ -229,9 +221,7 @@ const columns = (fetchStudents, openEdit) => [
       </Space>
   }
 ];
-
 const antIcon = <LoadingOutlined style={{ fontSize: 24, }} spin />;
-
 /**
  * Main application component that manages the student management system.
  * 
@@ -275,6 +265,57 @@ const antIcon = <LoadingOutlined style={{ fontSize: 24, }} spin />;
  * @state {string} reportDomain              - Report domain filter
  * @state {number} pageSize                  - Students table page size
  */
+/**
+ * Main application component that provides a full-featured student management system.
+ * 
+ * Features:
+ * - Dashboard with statistics and visualizations (gender distribution, email domains)
+ * - Student CRUD operations (Create, Read, Update, Delete)
+ * - Paginated student table with customizable page sizes
+ * - Student report generation with filtering by gender and email domain
+ * - CSV export and import functionality for bulk student data management
+ * - Responsive layout with collapsible sidebar navigation
+ * - Real-time statistics including gender counts and top email domains
+ * 
+ * The component manages multiple views through menu navigation:
+ * - Dashboard: Overview with charts and statistics
+ * - Students: Table view with add/update/delete modes
+ * - Files: CSV import/export operations
+ * - Reports: Filtered student reports with export capability
+ * 
+ * @component
+ * @returns {JSX.Element} The main application layout with sidebar navigation and dynamic content area
+ */
+/**
+ * Main application component that manages student data, reports, and navigation.
+ * 
+ * Provides a comprehensive interface for:
+ * - Viewing and managing students (CRUD operations)
+ * - Dashboard with statistics (gender distribution, email domains)
+ * - Report generation with filtering capabilities
+ * - CSV import/export functionality
+ * - Navigation between different sections (Dashboard, Students, Teams, Files, Reports)
+ * 
+ * @component
+ * @returns {JSX.Element} The main application layout with sidebar navigation and content area
+ * 
+ * @description
+ * This component handles:
+ * - Student pagination with configurable page sizes
+ * - Real-time statistics for gender and email domain distribution
+ * - Interactive charts (pie charts for gender, bar charts for domains)
+ * - Drawer-based forms for adding/editing students
+ * - CSV export/import with proper field escaping
+ * - Report filtering by gender and email domain
+ * - Responsive layout with collapsible sidebar
+ * 
+ * State management includes:
+ * - Student list with pagination
+ * - Statistics (gender and domain)
+ * - Report data with filtering
+ * - UI states (drawer visibility, selected menu, editing mode)
+ * - Page size persistence in localStorage
+ */
 function App() {
   useEffect(() => {
     console.log("Component is mounted");
@@ -299,8 +340,6 @@ function App() {
   const [reportGender   , setReportGender]    = useState();
   const [reportDomain   , setReportDomain]    = useState('');
   const stats = useStudentStats(students);
-  
- 
   /**
    * Computes the top 10 domains with their counts and percentages.
    *
@@ -329,17 +368,20 @@ function App() {
     } else {
       entries = raw.map(it => ({ domain: it.domain, count: it.count ?? 0, percentage: it.percentage }));
     }
-
     const totalForPercent = entries.reduce((s, e) => s + (e.count || 0), 0) || 1;
-
     entries.sort((a, b) => (b.count || 0) - (a.count || 0) || (a.domain || '').localeCompare(b.domain || ''));
-
     return entries.slice(0, 10).map(e => ({
       ...e,
       percentage: e.percentage != null ? e.percentage : +( (totalStudents ? (e.count * 100 / totalStudents) : (e.count * 100 / totalForPercent)) ).toFixed(1)
     }));
   }, [stats?.domains, totalStudents, domainStats]);
-  
+  /**
+   * Navigates to the reports section with a specific domain filter applied.
+   * Clears the gender filter and sets the selected menu to 'reports'.
+   * 
+   * @param {string} domain - The domain to filter reports by. If falsy, the function returns early without making changes.
+   * @returns {void}
+   */
   const jumpToReportsWithDomain = (domain) => {
     if (!domain) return;
     setReportDomain(domain);
