@@ -51,7 +51,7 @@ public class StudentIT {
         String name = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
         String email = String.format("%s@syscomz.com", name.replace(" ", "").toLowerCase());
 
-        Student student = new Student(name, email, Gender.MALE);
+        Student student = new Student(name, email, Gender.MALE, "USA", "MIT", "Computer Science", null);
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/v1/students")
@@ -74,7 +74,7 @@ public class StudentIT {
         String name = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
         String email = String.format("%s@syscomz.com", name.replace(" ", "").toLowerCase());
 
-        Student student = new Student(name, email, Gender.MALE);
+        Student student = new Student(name, email, Gender.MALE, "USA", "MIT", "Computer Science", null);
 
         mockMvc.perform(post("/api/v1/students")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,15 +117,15 @@ public class StudentIT {
         // given - create students with different genders
         String name1 = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
         String email1 = String.format("%s@syscomz.com", name1.replace(" ", "").toLowerCase());
-        Student male = new Student(name1, email1, Gender.MALE);
+        Student male = new Student(name1, email1, Gender.MALE, "USA", "MIT", "Computer Science", null);
 
         String name2 = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
         String email2 = String.format("%s@syscomz.com", name2.replace(" ", "").toLowerCase());
-        Student female = new Student(name2, email2, Gender.FEMALE);
+        Student female = new Student(name2, email2, Gender.FEMALE, "Canada", "UBC", "Engineering", null);
 
         String name3 = String.format("%s %s", faker.name().firstName(), faker.name().lastName());
         String email3 = String.format("%s@syscomz.com", name3.replace(" ", "").toLowerCase());
-        Student other = new Student(name3, email3, Gender.OTHER);
+        Student other = new Student(name3, email3, Gender.OTHER, "UK", "Oxford", "Mathematics", null);
 
         mockMvc.perform(post("/api/v1/students")
                         .contentType(MediaType.APPLICATION_JSON)

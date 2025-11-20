@@ -440,8 +440,8 @@ function App() {
       .then(r => r.json())
       .then(data => {
         setStudents(data.content);
-        setTotalStudents(data.totalElements);
-        setCurrentPage(data.number + 1);
+        setTotalStudents(data.page.totalElements);
+        setCurrentPage(data.page.number + 1);
         refreshGenderStats();
         refreshDomainStats();
         refreshNationalityStats();
@@ -467,8 +467,8 @@ function App() {
       .then(r => r.json())
       .then(data => {
         setReportData(data.content);
-        setReportTotal(data.totalElements);
-        setReportPage(data.number + 1);
+        setReportTotal(data.page.totalElements);
+        setReportPage(data.page.number + 1);
       })
       .catch(err => { console.log(err.response); })
       .finally(() => setReportFetching(false));

@@ -31,9 +31,9 @@ class StudentExportIT {
     @BeforeEach
     void setup() {
         studentRepository.deleteAll();
-        studentRepository.save(new Student("Alice", "alice@gmail.com", Gender.FEMALE));
-        studentRepository.save(new Student("Bob", "bob@gmail.com", Gender.MALE));
-        studentRepository.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE));
+        studentRepository.save(new Student("Alice", "alice@gmail.com", Gender.FEMALE, "USA", "MIT", "Computer Science", null));
+        studentRepository.save(new Student("Bob", "bob@gmail.com", Gender.MALE, "Canada", "UBC", "Engineering", null));
+        studentRepository.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE, "UK", "Oxford", "Mathematics", null));
     }
 
     @Test
@@ -50,8 +50,8 @@ class StudentExportIT {
         String cd = res.getResponse().getHeader(HttpHeaders.CONTENT_DISPOSITION);
         assertThat(cd).isNotNull();
         assertThat(cd).contains("attachment");
-        // header exists
-        assertThat(body).startsWith("id,name,email,gender\n");
+        // header exists with all fields
+        assertThat(body).startsWith("id,name,email,gender,nationality,college,major,minor\n");
         // contains both FEMALE rows
         assertThat(body).contains("alice@gmail.com");
         assertThat(body).contains("carol@outlook.com");
