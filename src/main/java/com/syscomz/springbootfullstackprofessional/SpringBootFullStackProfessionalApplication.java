@@ -19,6 +19,8 @@ package com.syscomz.springbootfullstackprofessional;
  */ 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
 /*
  * The @SpringBootApplication annotation indicates that this is the main class for a Spring Boot application.
  * It enables auto-configuration, component scanning, and allows for defining extra configuration on the application
@@ -32,6 +34,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * containing Spring components to ensure they are discovered during component scanning.
  */
 @SpringBootApplication
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
 public class SpringBootFullStackProfessionalApplication {
 	/*
 	 * The main method is the entry point of the Java application.

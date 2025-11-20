@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "Testing Student API..."
+echo "===================="
+echo""
+echo "Testing /api/v1/students (first 3):"
+curl -s 'http://localhost:8080/api/v1/students' | jq '.[0:3]' 2>/dev/null || echo "Failed to get students"
+echo ""
+echo ""
+echo "Testing /api/v1/students/page (first page, size 3):"
+curl -s 'http://localhost:8080/api/v1/students/page?page=0&size=3' | jq '.' 2>/dev/null || echo "Failed to get paged students"

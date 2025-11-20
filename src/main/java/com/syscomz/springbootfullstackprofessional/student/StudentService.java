@@ -109,6 +109,11 @@ public class    StudentService {
         Boolean isEmailTaken = studentRepository.selectExistsEmail(student.getEmail());
         if (isEmailTaken)
             throw new BadRequestException(String.format("Student with email %s, already exists!", student.getEmail()));
+        // Ensure nulls for missing fields
+        if (student.getNationality() == null) student.setNationality("");
+        if (student.getCollege() == null) student.setCollege("");
+        if (student.getMajor() == null) student.setMajor("");
+        if (student.getMinor() == null) student.setMinor("");
         studentRepository.save(student);
     }
     @SuppressWarnings("null")
@@ -139,6 +144,18 @@ public class    StudentService {
         }
         if (update.getGender() != null) {
             existing.setGender(update.getGender());
+        }
+        if (update.getNationality() != null) {
+            existing.setNationality(update.getNationality());
+        }
+        if (update.getCollege() != null) {
+            existing.setCollege(update.getCollege());
+        }
+        if (update.getMajor() != null) {
+            existing.setMajor(update.getMajor());
+        }
+        if (update.getMinor() != null) {
+            existing.setMinor(update.getMinor());
         }
 
         studentRepository.save(existing);
@@ -176,6 +193,44 @@ public class    StudentService {
             if (countObj instanceof Number) count = ((Number) countObj).longValue();
             else try { count = Long.parseLong(String.valueOf(countObj)); } catch (NumberFormatException ex) { count = 0L; }
             result.add(new DomainCount(domain, count));
+        }
+        return result;
+    }
+
+    /**
+     * Returns aggregated counts of students grouped by nationality.
+     */
+    public java.util.List<DomainCount> getNationalityStats() {
+        java.util.List<DomainCount> result = new java.util.ArrayList<>();
+        for (Object[] row : studentRepository.countByNationality()) {
+            if (row == null || row.length < 2) continue;
+            final Object nameObj = row[0];
+            final Object countObj = row[1];
+            if (nameObj == null) continue;
+            String name = String.valueOf(nameObj);
+            long count = 0L;
+            if (countObj instanceof Number) count = ((Number) countObj).longValue();
+            else try { count = Long.parseLong(String.valueOf(countObj)); } catch (NumberFormatException ex) { count = 0L; }
+            result.add(new DomainCount(name, count));
+        }
+        return result;
+    }
+
+    /**
+     * Returns aggregated counts of students grouped by college.
+     */
+    public java.util.List<DomainCount> getCollegeStats() {
+        java.util.List<DomainCount> result = new java.util.ArrayList<>();
+        for (Object[] row : studentRepository.countByCollege()) {
+            if (row == null || row.length < 2) continue;
+            final Object nameObj = row[0];
+            final Object countObj = row[1];
+            if (nameObj == null) continue;
+            String name = String.valueOf(nameObj);
+            long count = 0L;
+            if (countObj instanceof Number) count = ((Number) countObj).longValue();
+            else try { count = Long.parseLong(String.valueOf(countObj)); } catch (NumberFormatException ex) { count = 0L; }
+            result.add(new DomainCount(name, count));
         }
         return result;
     }

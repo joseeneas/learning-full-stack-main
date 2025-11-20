@@ -95,6 +95,42 @@ function StudentDrawerForm({ showDrawer, setShowDrawer, fetchStudents, initialVa
                         </Form.Item>
                     </Col>
                 </Row>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="nationality"
+                                label="Nationality"
+                                rules={[{ required: false }]}> 
+                                <Input placeholder="Please enter nationality" />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="college"
+                                label="College"
+                                rules={[{ required: false }]}> 
+                                <Input placeholder="Please enter college" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="major"
+                                label="Major"
+                                rules={[{ required: false }]}> 
+                                <Input placeholder="Please enter major" />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="minor"
+                                label="Minor"
+                                rules={[{ required: false }]}> 
+                                <Input placeholder="Please enter minor" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
                 <Row>
                     <Col span={12}>
                         <Form.Item >

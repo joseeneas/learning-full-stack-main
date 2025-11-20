@@ -50,7 +50,7 @@ class StudentServiceTest {
     @Test
     void canAddStudent() {
         // given
-        Student student = new Student("Borislav", "b.dostumski@gmail.com", Gender.MALE);
+        Student student = new Student("Borislav", "b.dostumski@gmail.com", Gender.MALE, "USA", "Engineering", "CS", "Math");
 
         // when
         underTest.addStudent(student);
@@ -65,7 +65,7 @@ class StudentServiceTest {
     @Test
     void willThrowWhenEmailIsTaken() {
         // given
-        Student student = new Student("Borislav", "b.dostumski@gmail.com", Gender.MALE);
+        Student student = new Student("Borislav", "b.dostumski@gmail.com", Gender.MALE, "USA", "Engineering", "CS", "Math");
 
         // Mock that the email of the student already exists
         // to get in the if the statement of the method addStudent(), and throw an exception

@@ -2,7 +2,7 @@
   App.jsx
   Main App component that manages student data and renders the application layout.
 */
-import { deleteStudent, getStudentsPage, updateStudent, addNewStudent, getGenderStats, getStudentsSearch, getDomainStats } from "./Client";
+import { deleteStudent, getStudentsPage, updateStudent, addNewStudent, getGenderStats, getStudentsSearch, getDomainStats, getNationalityStats, getCollegeStats } from "./Client";
 import StudentDrawerForm                                from "./StudentDrawerForm.jsx";
 import { errorNotification, successNotification }       from "./Notification";
 import './App.css';
@@ -203,6 +203,10 @@ const columns = (fetchStudents, openEdit) => [
   { title: 'Name', dataIndex: 'name', key: 'name' },
   { title: 'Email', dataIndex: 'email', key: 'email' },
   { title: 'Gender', dataIndex: 'gender', key: 'gender' },
+  { title: 'Nationality', dataIndex: 'nationality', key: 'nationality' },
+  { title: 'College', dataIndex: 'college', key: 'college' },
+  { title: 'Major', dataIndex: 'major', key: 'major' },
+  { title: 'Minor', dataIndex: 'minor', key: 'minor' },
   {
     title     : 'Actions',
     key       : 'actions',
@@ -332,6 +336,8 @@ function App() {
   const [currentPage    , setCurrentPage]     = useState(1);
     const [genderStats    , setGenderStats     ] = useState(null);
     const [domainStats    , setDomainStats     ] = useState(null);
+    const [nationalityStats, setNationalityStats] = useState(null);
+    const [collegeStats   , setCollegeStats    ] = useState(null);
   const [reportData     , setReportData]      = useState([]);
   const [reportFetching , setReportFetching]  = useState(false);
   const [reportTotal    , setReportTotal]     = useState(0);
@@ -404,26 +410,6 @@ function App() {
     return stored ? Number(stored) : 50;
   });
   useEffect(() => { localStorage.setItem('students.pageSize', String(pageSize)); }, [pageSize]);
-  const fetchStudents = (page = currentPage, size = pageSize) => {
-    setFetching(true);
-    getStudentsPage(page - 1, size)
-      .then(r => r.json())
-      .then(data => {
-        setStudents(data.content);
-        setTotalStudents(data.totalElements);
-        setCurrentPage(data.number + 1);
-        refreshGenderStats();
-        refreshDomainStats();
-      }).catch(err => {
-        console.log(err.response);
-        err.response.json().then(res => {
-          errorNotification(
-            "There was an issue",
-            `${res.message} [statusCode ${res.status}] [${res.error}]`
-          );
-        });
-      }).finally(() => setFetching(false));
-  };
   const refreshGenderStats = () => {
     getGenderStats()
       .then(r => r.json())
@@ -435,6 +421,40 @@ function App() {
       .then(r => r.json())
       .then(data => setDomainStats(data))
       .catch(err => { console.log(err.response); setDomainStats(null); });
+  };
+  const refreshNationalityStats = () => {
+    getNationalityStats()
+      .then(r => r.json())
+      .then(data => setNationalityStats(data))
+      .catch(err => { console.log(err.response); setNationalityStats(null); });
+  };
+  const refreshCollegeStats = () => {
+    getCollegeStats()
+      .then(r => r.json())
+      .then(data => setCollegeStats(data))
+      .catch(err => { console.log(err.response); setCollegeStats(null); });
+  };
+  const fetchStudents = (page = currentPage, size = pageSize) => {
+    setFetching(true);
+    getStudentsPage(page - 1, size)
+      .then(r => r.json())
+      .then(data => {
+        setStudents(data.content);
+        setTotalStudents(data.totalElements);
+        setCurrentPage(data.number + 1);
+        refreshGenderStats();
+        refreshDomainStats();
+        refreshNationalityStats();
+        refreshCollegeStats();
+      }).catch(err => {
+        console.log(err.response);
+        err.response.json().then(res => {
+          errorNotification(
+            "There was an issue",
+            `${res.message} [statusCode ${res.status}] [${res.error}]`
+          );
+        });
+      }).finally(() => setFetching(false));
   };
   const fetchReport = (page = reportPage, size = reportPageSize) => {
     setReportFetching(true);
@@ -466,6 +486,10 @@ function App() {
         return <Tag color={color}>{g}</Tag>
       }
     },
+    { title: 'Nationality', dataIndex: 'nationality', key: 'nationality' },
+    { title: 'College', dataIndex: 'college', key: 'college' },
+    { title: 'Major', dataIndex: 'major', key: 'major' },
+    { title: 'Minor', dataIndex: 'minor', key: 'minor' },
   ];
   const renderStudentsTable = () => {
     if (fetching) { return <Spin indicator={antIcon} />; }
@@ -656,11 +680,11 @@ function App() {
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card size="small">
-                  <Statistic title="Email Domains" value={stats.domains.length} />
+                  <Statistic title="Email Domains" value={domainStats?.length || stats.domains.length} />
                 </Card>
               </Col>
             </Row>
-            <Divider orientation="left">Gender and Domain Distribution</Divider>
+            <Divider orientation="left">Visualizations</Divider>
             <Row gutter={[16,16]}>
               <Col xs={24} md={12}>
                 <Card size="small" title="Gender Distribution" styles={{ body: { height: 320 } }}>
@@ -700,25 +724,57 @@ function App() {
                 </Card>
               </Col>
             </Row>
-            <Divider orientation="left">Genders</Divider>
             <Row gutter={[16,16]}>
-              {Object.entries(genderStats || {}).map(([g, count]) => {
-                const pct = totalStudents ? (count * 100) / totalStudents : 0;
-                const displayPct = Number(pct.toFixed(1));
-                return (
-                    <Col key={g} xs={24} sm={12} md={8} lg={6}>
-                      <Card className="gender-card" size="small" styles={{ body: { padding: 14, height: 48, width: '100%' } }}>
-                        <div className="gender-card-content">
-                          <div className="gender-left">
-                            <Tag className="gender-tag" color="blue" style={{ marginBottom: 0 }}>{g}</Tag>
-                            <Badge className="gender-badge" count={count} showZero />
-                          </div>
-                          <div className="gender-right"><Tag color="geekblue" style={{ margin: 0 }}>{displayPct}%</Tag></div>
-                        </div>
-                      </Card>
-                  </Col>
-                );
-              })}
+              <Col xs={24} md={12}>
+                <Card size="small" title="Top 10 Nationalities" styles={{ body: { height: 320 } }}>
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Student distribution by nationality</div>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={(nationalityStats || []).slice(0, 10).map(item => ({ name: item.domain, count: item.count }))} margin={{ bottom: 56, left: 8, right: 8, top: 12 }}>
+                      <XAxis
+                        dataKey="name"
+                        interval={0}
+                        angle={-35}
+                        textAnchor="end"
+                        height={56}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis allowDecimals={false} />
+                      <RechartsTooltip formatter={(value) => [value, 'Students']} labelFormatter={(label) => `Nationality: ${label}`} />
+                      <Legend verticalAlign="top" align="left" content={() => null} />
+                      <Bar dataKey="count" name="Nationalities" fill="#52c41a">
+                        {(nationalityStats || []).slice(0, 10).map((entry, index) => (
+                          <Cell key={entry.domain} fill={DOMAIN_COLORS[index % DOMAIN_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card size="small" title="Top 10 Colleges" styles={{ body: { height: 320 } }}>
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Student distribution by college</div>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={(collegeStats || []).slice(0, 10).map(item => ({ name: item.domain, count: item.count }))} margin={{ bottom: 56, left: 8, right: 8, top: 12 }}>
+                      <XAxis
+                        dataKey="name"
+                        interval={0}
+                        angle={-35}
+                        textAnchor="end"
+                        height={56}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis allowDecimals={false} />
+                      <RechartsTooltip formatter={(value) => [value, 'Students']} labelFormatter={(label) => `College: ${label}`} />
+                      <Legend verticalAlign="top" align="left" content={() => null} />
+                      <Bar dataKey="count" name="Colleges" fill="#722ed1">
+                        {(collegeStats || []).slice(0, 10).map((entry, index) => (
+                          <Cell key={entry.domain} fill={DOMAIN_COLORS[index % DOMAIN_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
             </Row>
             <Divider orientation="left">Top Email Domains</Divider>
             <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Showing top 10 email domains by occurrence (count)</div>

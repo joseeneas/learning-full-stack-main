@@ -29,7 +29,7 @@ class StudentRepositoryTest {
     void itShouldCheckWhenStudentEmailExists() {
         // given
         String email = "b.dostumski@gmail.com";
-        Student student = new Student("Borislav", email, Gender.MALE);
+        Student student = new Student("Borislav", email, Gender.MALE, "USA", "Engineering", "CS", "Math");
         underTest.save(student);
 
         //when
@@ -54,9 +54,9 @@ class StudentRepositoryTest {
     @Test
     void searchShouldFilterByDomainPaged() {
         // given
-        underTest.save(new Student("Alice", "alice@gmail.com", Gender.FEMALE));
-        underTest.save(new Student("Bob", "bob@gmail.com", Gender.MALE));
-        underTest.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE));
+        underTest.save(new Student("Alice", "alice@gmail.com", Gender.FEMALE, "USA", "Engineering", "CS", "Math"));
+        underTest.save(new Student("Bob", "bob@gmail.com", Gender.MALE, "USA", "Engineering", "CS", "Math"));
+        underTest.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE, "USA", "Engineering", "CS", "Math"));
 
         // when
         Page<Student> page = underTest.search(null, "gmail.com", PageRequest.of(0, 10, Sort.by("id")));
@@ -68,9 +68,9 @@ class StudentRepositoryTest {
     @Test
     void unpagedSearchShouldFilterByGender() {
         // given
-        underTest.save(new Student("Alice", "alice@gmail.com", Gender.FEMALE));
-        underTest.save(new Student("Bob", "bob@gmail.com", Gender.MALE));
-        underTest.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE));
+        underTest.save(new Student("Alice", "alice@gmail.com", Gender.FEMALE, "USA", "Engineering", "CS", "Math"));
+        underTest.save(new Student("Bob", "bob@gmail.com", Gender.MALE, "USA", "Engineering", "CS", "Math"));
+        underTest.save(new Student("Carol", "carol@outlook.com", Gender.FEMALE, "USA", "Engineering", "CS", "Math"));
 
         // when
         java.util.List<Student> list = underTest.search("FEMALE", null, Sort.by("id"));

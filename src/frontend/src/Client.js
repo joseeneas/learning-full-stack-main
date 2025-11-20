@@ -113,3 +113,9 @@ export const getGenderStats = () =>
 
 export const getDomainStats = () =>
     fetch('/api/v1/students/stats/domains').then(checkStatus);
+
+export const getNationalityStats = () =>
+    fetch('/api/v1/students/stats/nationalities').then(checkStatus);
+
+export const getCollegeStats = () =>
+    fetch('/api/v1/students/stats/colleges').then(checkStatus);

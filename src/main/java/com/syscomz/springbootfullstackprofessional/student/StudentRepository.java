@@ -63,6 +63,20 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
            nativeQuery = true)
     List<Object[]> countByDomain();
 
+    // Aggregate counts by nationality
+    @Query(value = "SELECT nationality, COUNT(*) as count " +
+                   "FROM student WHERE nationality IS NOT NULL " +
+                   "GROUP BY nationality ORDER BY COUNT(*) DESC",
+           nativeQuery = true)
+    List<Object[]> countByNationality();
+
+    // Aggregate counts by college
+    @Query(value = "SELECT college, COUNT(*) as count " +
+                   "FROM student WHERE college IS NOT NULL " +
+                   "GROUP BY college ORDER BY COUNT(*) DESC",
+           nativeQuery = true)
+    List<Object[]> countByCollege();
+
         // Paged search with optional gender and domain filters
         // Use native queries and explicit CAST(email AS TEXT) to avoid bytea/lower issues on Postgres
             @Query(value = "SELECT * FROM student WHERE (:gender IS NULL OR gender = :gender) " +

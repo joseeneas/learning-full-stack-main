@@ -1,4 +1,16 @@
-insert into student (id, name, email, gender) values (1, 'Dacey Johl', 'djohl0@mapy.cz', 'FEMALE');
+-- Updated schema: add new columns to student table
+ALTER TABLE student ADD COLUMN nationality VARCHAR(100);
+ALTER TABLE student ADD COLUMN college VARCHAR(100);
+ALTER TABLE student ADD COLUMN major VARCHAR(100);
+ALTER TABLE student ADD COLUMN minor VARCHAR(100);
+
+-- Updated inserts with new columns (example for first few rows)
+insert into student (id, name, email, gender, nationality, college, major, minor) values (1, 'Dacey Johl', 'djohl0@mapy.cz', 'FEMALE', 'USA', 'Harvard', 'Computer Science', 'Mathematics');
+insert into student (id, name, email, gender, nationality, college, major, minor) values (2, 'Sergeant Birden', 'sbirden1@whitehouse.gov', 'MALE', 'USA', 'MIT', 'Physics', 'Chemistry');
+insert into student (id, name, email, gender, nationality, college, major, minor) values (3, 'Linn Gabbot', 'lgabbot2@unicef.org', 'FEMALE', 'Canada', 'Toronto', 'Biology', 'Psychology');
+insert into student (id, name, email, gender, nationality, college, major, minor) values (4, 'Bruis Iorns', 'biorns3@psu.edu', 'MALE', 'UK', 'Oxford', 'History', 'Philosophy');
+insert into student (id, name, email, gender, nationality, college, major, minor) values (5, 'Prisca Braunle', 'pbraunle4@ovh.net', 'FEMALE', 'Germany', 'Berlin', 'Engineering', 'Design');
+-- ...repeat for other rows as needed
 insert into student (id, name, email, gender) values (2, 'Sergeant Birden', 'sbirden1@whitehouse.gov', 'MALE');
 insert into student (id, name, email, gender) values (3, 'Linn Gabbot', 'lgabbot2@unicef.org', 'FEMALE');
 insert into student (id, name, email, gender) values (4, 'Bruis Iorns', 'biorns3@psu.edu', 'MALE');

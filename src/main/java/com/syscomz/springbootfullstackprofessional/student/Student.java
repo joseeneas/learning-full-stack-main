@@ -164,11 +164,36 @@ public class Student {
     @Column(nullable = false)                // database validations
     private Gender gender;                   // camelCase naming convention
 
+    @NotBlank
+    @Column(nullable = false)
+    private String nationality;
+
+    @NotBlank
+    @Column(nullable = false)
+    private String college;
+
+    @Column(nullable = true)
+    private String major;
+
+    @Column(nullable = true)
+    private String minor;
+
     // Convenience constructor excluding id (used for create operations)
     public Student(String name, String email, Gender gender) {
         this.name = name;
         this.email = email;
         this.gender = gender;
+    }
+
+    // New convenience constructor including new fields
+    public Student(String name, String email, Gender gender, String nationality, String college, String major, String minor) {
+        this.name = name;
+        this.email = email;
+        this.gender = gender;
+        this.nationality = nationality;
+        this.college = college;
+        this.major = major;
+        this.minor = minor;
     }
 
     // Explicit no-arg constructor required by JPA
@@ -185,6 +210,14 @@ public class Student {
     public void setEmail(String email) { this.email = email; }
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
+    public String getNationality() { return nationality; }
+    public void setNationality(String nationality) { this.nationality = nationality; }
+    public String getCollege() { return college; }
+    public void setCollege(String college) { this.college = college; }
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
+    public String getMinor() { return minor; }
+    public void setMinor(String minor) { this.minor = minor; }
 
     // Custom equals & hashCode (id-based if both present; otherwise business fields)
     @Override

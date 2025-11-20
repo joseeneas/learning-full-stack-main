@@ -99,6 +99,14 @@ public class StudentController {
     public java.util.List<DomainCount> getDomainStats() {
         return studentService.getDomainStats();
     }
+    @GetMapping("/stats/nationalities")
+    public java.util.List<DomainCount> getNationalityStats() {
+        return studentService.getNationalityStats();
+    }
+    @GetMapping("/stats/colleges")
+    public java.util.List<DomainCount> getCollegeStats() {
+        return studentService.getCollegeStats();
+    }
     @GetMapping("/search")
     public Page<Student> searchStudents(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "50") int size,
@@ -130,16 +138,20 @@ public class StudentController {
             }
         }
         List<Student> all = studentService.searchStudentsAll(sortBy, direction, parsedGender, domain);
-        StringBuilder sb = new StringBuilder();
-        // header
-        sb.append("id,name,email,gender\n");
-        for (Student s : all) {
-            sb.append(csv(s.getId()))
-              .append(',').append(csv(s.getName()))
-              .append(',').append(csv(s.getEmail()))
-              .append(',').append(csv(s.getGender() != null ? s.getGender().name() : ""))
-              .append('\n');
-        }
+                StringBuilder sb = new StringBuilder();
+                // header
+                sb.append("id,name,email,gender,nationality,college,major,minor\n");
+                for (Student s : all) {
+                        sb.append(csv(s.getId()))
+                            .append(',').append(csv(s.getName()))
+                            .append(',').append(csv(s.getEmail()))
+                            .append(',').append(csv(s.getGender() != null ? s.getGender().name() : ""))
+                            .append(',').append(csv(s.getNationality()))
+                            .append(',').append(csv(s.getCollege()))
+                            .append(',').append(csv(s.getMajor()))
+                            .append(',').append(csv(s.getMinor()))
+                            .append('\n');
+                }
         String filename = "students-export-" + java.time.LocalDate.now() + ".csv";
         return ResponseEntity
                 .ok()
