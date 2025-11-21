@@ -67,11 +67,11 @@ Prerequisites:
 - Node.js 18+ and npm
 - Docker (to run a local PostgreSQL)
 
-1. Start PostgreSQL locally (creates a container and maps it to port 5432):
+1. Start PostgreSQL locally (creates a container and maps it to port 5555):
 
 ```bash
 docker run --name db \
-   -p 5432:5432 \
+   -p 5555:5432 \
    -e POSTGRES_PASSWORD=password \
    -d postgres:alpine
 
@@ -127,6 +127,28 @@ docker run --name fullstack \
    -e SPRING_DATASOURCE_USERNAME=postgres \
    -e SPRING_DATASOURCE_PASSWORD=password \
 springboot-react-fullstack:local
+```
+
+Parameterization checklist for the container run (adjust to your environment):
+
+- DB host: `host.docker.internal` (macOS/Windows). If Linux, see note below.
+- DB port: `5555` (matches `docker run -p 5555:5432` above).
+- DB name: `syscomz` (or your database name).
+- DB user/password: `postgres` / `password` (or your credentials).
+
+Linux note: `host.docker.internal` may not resolve by default. Either:
+
+- Add host gateway: `--add-host=host.docker.internal:host-gateway`, or
+- Use a user-defined Docker network and connect both containers. Example:
+
+```bash
+docker network create db
+docker run --name db -p 5555:5432 --network=db -e POSTGRES_PASSWORD=password -d postgres:alpine
+docker run --rm --name fullstack --network=db -p 8080:8080 \
+   -e SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/syscomz \
+   -e SPRING_DATASOURCE_USERNAME=postgres \
+   -e SPRING_DATASOURCE_PASSWORD=password \
+   springboot-react-fullstack:local
 ```
 
 ### CI publish to GitHub Container Registry (GHCR)
