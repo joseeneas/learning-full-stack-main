@@ -328,7 +328,7 @@ This note documents the LFS migration so teammates understand the recommended wo
 
 ## Software Architecture
 
-![](./resources/architecture.jpg)
+![Software Architecture Diagram](./resources/architecture.jpg)
 
 ## Links
 
@@ -594,7 +594,7 @@ This note documents the LFS migration so teammates understand the recommended wo
          ![elasticbeanstalk aws Deployment started...](./resources/cicd-message3.png)
          ![Deployed to AWS](./resources/cicd-message4.png)
 9. Unit / Integration Testing (testing should start from the repository to the services. Every unit that was tested before should be mocked from the other test. For example, if we test the repository unit, we should mock it in the service tests unit. Except we make integration testing in this case we want the request flow through the system, and make sour that everything is working fine.)
-   ![](./resources/unit_testing_uml_diagram.png)
+   ![Unit Testing UML Diagram](./resources/unit_testing_uml_diagram.png)
 
    1. JUnit5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
       1. The JUnit Platform serves as a foundation for launching testing framework on the JVM.
