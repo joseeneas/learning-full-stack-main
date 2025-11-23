@@ -63,7 +63,7 @@ import jakarta.validation.constraints.NotNull;
 @Setter
 @AllArgsConstructor
 @Entity
-@Table
+@Table(name = "student")
 public class Student {
 /*
  * This snippet marks a field as the JPA primary key with @Id and declares a
