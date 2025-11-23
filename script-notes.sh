@@ -12,7 +12,7 @@ Plain text
 SPRING_DATASOURCE_URL
 jdbc:postgresql://awseb-e-vvrexpsbmg-stack-awsebrdsdatabase-hb8niodpfih2.cr08uw0iyflv.us-east-1.rds.amazonaws.com:5432/ebdb
 jdbc:postgresql://awseb-e-kfxwpczupn-stack-awsebrdsdatabase-7oc89vgwuoct.cr08uw0iyflv.us-east-1.rds.amazonaws.com:5432/ebdb
-
+jdbc:postgresql://awseb-e-xfsydwmdqm-stack-awsebrdsdatabase-5jrgi0k8qj71.cr08uw0iyflv.us-east-1.rds.amazonaws.com:5432/ebdb
 Plain text
 SPRING_DATASOURCE_USERNAME
 postgres
