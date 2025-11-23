@@ -416,7 +416,7 @@
                                     <!-- Upload to the docker hub with my account -->
                                     <!-- Give name and image tag -->
                                     <to>
-                                        <image>docker.io/bdostumski/${app.image.name}:${app.image.tag}</image>
+                                        <image>docker.io/joseeneassilva/${app.image.name}:${app.image.tag}</image>
                                     </to>
                                 </configuration>
                                 <!-- build is used to push docker image into docker hub repository -->
@@ -432,7 +432,7 @@
                                     <!-- Upload to the docker hub with my account -->
                                     <!-- Give name and image tag -->
                                     <to>
-                                        <image>docker.io/bdostumski/${app.image.name}:latest</image>
+                                        <image>docker.io/joseeneassilva/${app.image.name}:latest</image>
                                     </to>
                                 </configuration>
                                 <!-- build is used to push docker image into docker hub repository -->
@@ -483,7 +483,7 @@
                                     <!-- Upload to the docker hub with my account -->
                                     <!-- Give name and image tag -->
                                     <to>
-                                        <image>bdostumski/${app.image.name}:${app.image.tag}</image>
+                                        <image>joseeneassilva/${app.image.name}:${app.image.tag}</image>
                                     </to>
                                 </configuration>
                                 <!-- dockerBuild is used to build local docker image -->
@@ -499,7 +499,7 @@
                                     <!-- Upload to the docker hub with my account -->
                                     <!-- Give name and image tag -->
                                     <to>
-                                        <image>bdostumski/${app.image.name}:latest</image>
+                                        <image>joseeneassilva/${app.image.name}:latest</image>
                                     </to>
                                 </configuration>
                                 <!-- dockerBuild is used to build local docker image -->

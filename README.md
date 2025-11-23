@@ -151,40 +151,150 @@ docker run --rm --name fullstack --network=db -p 8080:8080 \
    springboot-react-fullstack:local
 ```
 
-### CI publish to GitHub Container Registry (GHCR)
+### CI/CD with GitHub Actions
 
-- The GitHub Actions workflow builds and pushes images to GHCR using the built-in `GITHUB_TOKEN`.
-- Image name convention: `ghcr.io/<owner>/springboot-react-fullstack:<sha>` and `:latest`.
-- Find images under your repo’s Packages or your GH profile Packages.
-- Pull example:
+The repository uses GitHub Actions for continuous integration and delivery (`.github/workflows/ci.yml`).
+
+#### Workflow Jobs
+
+**On Pull Request or Push to main/master:**
+
+1. **Build & Test** - Builds backend (Java 21) and frontend (React/Vite), runs all tests
+2. **Security Scan** (push only) - Runs OWASP Dependency-Check and generates SBOM
+3. **Build OCI Image Tar** (push only) - Creates container image tar using Jib
+4. **Push to GHCR** (push only) - Publishes image to GitHub Container Registry
+
+#### Pull and Run Images from GHCR
+
+Images are automatically published to GitHub Container Registry on push to main/master:
 
 ```bash
+# Pull latest image
 docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
+
+# Pull specific commit
+docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:<commit-sha>
+
+# Run the GHCR image
+docker run --name fullstack -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5555/syscomz \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=password \
+  ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
 ```
 
-### Cloud (AWS Elastic Beanstalk + RDS)
+Find published images under your repository's Packages tab or GitHub profile Packages.
 
-1. Build and push an image to Docker Hub:
+### Manual Deployment to Docker Hub and AWS
+
+The CI/CD pipeline publishes to GHCR automatically. For manual Docker Hub deployment (e.g., for AWS Elastic Beanstalk):
+
+#### Step 1: Build and Push Docker Image to Docker Hub
 
 ```bash
-./mvnw clean package -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=<your-tag>
+# Login to Docker Hub
+docker login
+
+# Build and push to Docker Hub
+./mvnw clean package -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=v1
 ```
 
-1. Update `elasticbeanstalk/docker-compose.yaml` to reference your tag and keep:
+This will:
+- Bundle React frontend and Spring Boot backend
+- Run all tests
+- Create Docker image using Jib
+- Push to Docker Hub as: `<your-dockerhub-username>/springboot-react-fullstack:v1` and `:latest`
 
-```yaml
-environment:
-   SPRING_PROFILES_ACTIVE: dev
-```
+#### Step 2: Create AWS Elastic Beanstalk Environment + RDS
 
-1. In the Elastic Beanstalk environment, upload the updated `docker-compose.yaml`.
-2. Ensure the EB instance security group can reach the RDS instance (and vice versa), or adjust RDS inbound rules accordingly.
+1. **Go to AWS Console** → Elastic Beanstalk
+2. **Click "Create Application"**
 
-Notes:
+**Application Settings:**
+- Application name: `fullstack-syscomz` (or your preferred name)
+- Environment name: `Fullstack-syscomz-env`
+- Platform: **Docker**
+- Platform branch: **Docker running on 64bit Amazon Linux 2023**
 
-- The `dev` Spring profile (`application-dev.properties`) is configured for RDS. Set the EB env var `SPRING_PROFILES_ACTIVE=dev` to use it.
-- You can also pass `SPRING_DATASOURCE_*` environment variables directly in Elastic Beanstalk if you prefer explicit overrides.
-- Use `-P use-java21-toolchain` if you want Maven to use a configured JDK 21 toolchain during builds (optional).
+**Application Code:**
+- Choose: **Upload your code**
+- Upload file: `elasticbeanstalk/docker-compose.yaml`
+- Version label: `v1`
+
+3. **Click "Configure more options"**
+
+**Database Configuration:**
+- Click **Edit** on Database card
+- Engine: **postgres**
+- Engine version: **17.2** (or latest)
+- Instance class: **db.t3.micro** (Free tier eligible)
+- Storage: **20 GB**
+- Username: **postgres** (or your choice)
+- Password: **Choose a strong password and save it!**
+- Database name: **ebdb** (AWS default)
+- Database retention: **Delete** (or Create snapshot if you want to keep data)
+- Click **Save**
+
+**Capacity:**
+- Environment type: **Single instance** (for development)
+- Instance types: **t2.micro** or **t3.micro**
+
+4. **Click "Create environment"**
+
+This takes 10-15 minutes. AWS will:
+- Create EC2 instance
+- Create RDS PostgreSQL database
+- Set up security groups
+- Deploy your Docker container
+- Configure automatic environment variables (`RDS_HOSTNAME`, `RDS_PORT`, `RDS_DB_NAME`, `RDS_USERNAME`, `RDS_PASSWORD`)
+
+#### Step 3: Verify Deployment
+
+Once the environment health shows **"Ok"** (green):
+
+1. **Get your application URL:**
+   - Format: `http://<environment-name>.<random-id>.<region>.elasticbeanstalk.com`
+   - Example: `http://fullstack-syscomz-env.eba-ejvsqiqk.us-east-1.elasticbeanstalk.com`
+
+2. **Test your application:**
+   ```bash
+   # Health check
+   curl http://your-eb-url.elasticbeanstalk.com/actuator/health
+   
+   # API endpoint
+   curl http://your-eb-url.elasticbeanstalk.com/api/v1/students
+   ```
+
+3. **Visit in browser:** Open your EB URL to see the React frontend
+
+#### Important Notes
+
+**Environment Variables:**
+- The `docker-compose.yaml` uses AWS's automatic RDS environment variables
+- AWS automatically sets: `${RDS_HOSTNAME}`, `${RDS_PORT}`, `${RDS_DB_NAME}`, `${RDS_USERNAME}`, `${RDS_PASSWORD}`
+- These are injected at runtime - no need to hardcode credentials
+
+**Database Configuration:**
+- The application uses `application-dev.properties` when `SPRING_PROFILES_ACTIVE=dev`
+- Environment variables from docker-compose.yaml override properties file
+- AWS Security Groups automatically allow EB → RDS connectivity
+
+**Updating Your Application:**
+1. Make code changes
+2. Build and push new version: `./mvnw clean package -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=v2`
+3. Update `elasticbeanstalk/docker-compose.yaml` image tag to `v2`
+4. In EB Console: **Upload and deploy** the updated `docker-compose.yaml`
+
+**Cost Management:**
+- **Terminate** the environment when not in use (Configuration → Actions → Terminate)
+- Choose "Create snapshot" to preserve the database
+- **Restore** later by creating a new environment with the snapshot
+
+**Troubleshooting:**
+- Check **Logs** → Request Logs → Last 100 Lines
+- Verify **Health** status in EB Console
+- Check **Events** tab for deployment messages
+- Ensure Security Groups allow EB ↔ RDS connectivity
 
 ### Quick start: run locally in two terminals
 
