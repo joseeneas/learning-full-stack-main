@@ -76,7 +76,8 @@ public class StudentSeeder implements CommandLineRunner {
         int chunkSize = 500;
         for (int start = 0; start < batch.size(); start += chunkSize) {
             int end = Math.min(start + chunkSize, batch.size());
-            studentRepository.saveAll(batch.subList(start, end));
+            List<Student> chunk = new ArrayList<>(batch.subList(start, end));
+            studentRepository.saveAll(chunk);
         }
     }
 }
