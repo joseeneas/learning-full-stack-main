@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "joseeneassilva/springboot-react-fullstack:v2",
+    "Name": "joseeneassilva/springboot-react-fullstack:v5",
     "Update": "true"
   },
   "Ports": [
