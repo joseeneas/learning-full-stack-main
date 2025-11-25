@@ -597,68 +597,99 @@ function App() {
     URL.revokeObjectURL(url);
     successNotification('Export complete', 'Students CSV downloaded');
   };
-  const handleCsvImport = (file) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target.result;
-        const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
-        if (lines.length < 2) {
-          errorNotification('Invalid CSV', 'Need at least a header and one data row');
-          return;
-        }
-        const header = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
-        const required = ['name','email','gender'];
-        const missing = required.filter(r => !header.includes(r));
-        if (missing.length) {
-          errorNotification('Missing columns', `CSV missing required: ${missing.join(', ')}`);
-          return;
-        }
-        const nameIdx = header.indexOf('name');
-        const emailIdx = header.indexOf('email');
-        const genderIdx = header.indexOf('gender');
-        let importedCount = 0;
-        for (let i = 1; i < lines.length; i++) {
-          const raw = lines[i];
-          const fields = [];
-          let current = '';
-          let inQuotes = false;
-          for (let c = 0; c < raw.length; c++) {
-            const ch = raw[c];
-            if (ch === '"') {
-              if (inQuotes && raw[c+1] === '"') { current += '"'; c++; } else { inQuotes = !inQuotes; }
-            } else if (ch === ',' && !inQuotes) {
-              fields.push(current); current = '';
-            } else {
-              current += ch;
-            }
-          }
-          fields.push(current);
-          const name = (fields[nameIdx] || '').trim();
-          const email = (fields[emailIdx] || '').trim();
-          const gender = (fields[genderIdx] || '').trim();
-          if (!name || !email || !gender) { continue; }
-          try {
-            await addNewStudent({ name, email, gender });
-            importedCount++;
-          } catch (err) {
-            console.log('Import row error', err);
-          }
-        }
-        if (importedCount > 0) {
-          successNotification('Import complete', `${importedCount} students imported`);
-          fetchStudents();
-        } else {
-          errorNotification('Nothing imported', 'No valid rows processed');
-        }
-      } catch (ex) {
-        console.error(ex);
-        errorNotification('Import failed', 'Unexpected error parsing CSV');
+
+const handleCsvImport = (file) => {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (lines.length < 2) {
+        errorNotification('Invalid CSV', 'Need at least a header and one data row');
+        return;
       }
-    };
-    reader.readAsText(file);
-    return false;
+
+      // Normalize header to lowercase, strip quotes
+      const header = lines[0]
+        .split(',')
+        .map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+
+      // All mandatory columns for current Student schema
+      const required = ['name', 'email', 'gender', 'nationality', 'college', 'major', 'minor'];
+      const missing = required.filter(r => !header.includes(r));
+      if (missing.length) {
+        errorNotification('Missing columns', `CSV missing required: ${missing.join(', ')}`);
+        return;
+      }
+
+      // Index map for quick lookup
+      const idx = Object.fromEntries(required.map(col => [col, header.indexOf(col)]));
+
+      let importedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const raw = lines[i];
+        const fields = [];
+        let current = '';
+        let inQuotes = false;
+
+        // Robust CSV line parsing with quoted fields
+        for (let c = 0; c < raw.length; c++) {
+          const ch = raw[c];
+          if (ch === '"') {
+            if (inQuotes && raw[c + 1] === '"') {
+              current += '"';
+              c++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === ',' && !inQuotes) {
+            fields.push(current);
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+        fields.push(current);
+
+        const get = (key) => (fields[idx[key]] || '').trim();
+
+        const name        = get('name');
+        const email       = get('email');
+        const gender      = get('gender');
+        const nationality = get('nationality');
+        const college     = get('college');
+        const major       = get('major');
+        const minor       = get('minor');
+
+        // Skip any row missing a mandatory value
+        if (!name || !email || !gender || !nationality || !college || !major || !minor) {
+          continue;
+        }
+
+        try {
+          await addNewStudent({ name, email, gender, nationality, college, major, minor });
+          importedCount++;
+        } catch (err) {
+          console.log('Import row error', err);
+        }
+      }
+
+      if (importedCount > 0) {
+        successNotification('Import complete', `${importedCount} students imported`);
+        fetchStudents();
+      } else {
+        errorNotification('Nothing imported', 'No valid rows processed');
+      }
+    } catch (ex) {
+      console.error(ex);
+      errorNotification('Import failed', 'Unexpected error parsing CSV');
+    }
   };
+  reader.readAsText(file);
+  return false;
+};
+// ...existing code...
   const renderContent = () => {
     switch (selectedMenuKey) {
       case 'dashboard':
@@ -916,7 +947,7 @@ function App() {
       case 'files-import-students':
         return <>
           <h2>Import Students CSV</h2>
-          <p>Upload a CSV with columns: name,email,gender (id optional).</p>
+          <p>Upload a CSV with columns: name,email,gender,nationality,college,major,minor (id optional).</p>
           <Upload
             accept=".csv,text/csv"
             beforeUpload={handleCsvImport}
@@ -926,7 +957,7 @@ function App() {
             <Button icon={<UploadOutlined />}>Select CSV File</Button>
           </Upload>
           <Divider />
-          <Tag color="blue">Tip</Tag> Example header: <code>name,email,gender</code>
+          <Tag color="blue">Tip</Tag> Example header: <code>name,email,gender,nationality,college,major,minor</code>
         </>;
       default:
         return <Empty description="No content" />;
