@@ -334,10 +334,10 @@ function App() {
   const [fetching       , setFetching]        = useState(true);
   const [totalStudents  , setTotalStudents]   = useState(0);
   const [currentPage    , setCurrentPage]     = useState(1);
-    const [genderStats    , setGenderStats     ] = useState(null);
-    const [domainStats    , setDomainStats     ] = useState(null);
-    const [nationalityStats, setNationalityStats] = useState(null);
-    const [collegeStats   , setCollegeStats    ] = useState(null);
+  const [genderStats    , setGenderStats]     = useState(null);
+  const [domainStats    , setDomainStats]     = useState(null);
+  const [nationalityStats,setNationalityStats] = useState(null);
+  const [collegeStats   , setCollegeStats]    = useState(null);
   const [reportData     , setReportData]      = useState([]);
   const [reportFetching , setReportFetching]  = useState(false);
   const [reportTotal    , setReportTotal]     = useState(0);
@@ -575,7 +575,7 @@ function App() {
       errorNotification('No data', 'There are no students to export');
       return;
     }
-    const headers = ['id','name','email','gender'];
+    const headers = ['id','name','gender','email','nationality','college','major','minor'];
     const escapeField = (f) => {
       if (f == null) return '';
       const s = String(f);
