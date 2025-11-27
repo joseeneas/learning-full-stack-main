@@ -4,7 +4,7 @@ A professional-grade full stack application with Spring Boot backend and React f
 
 Based on the popular:  [https://github.com/bdostumski/learning-full-stack](https://github.com/bdostumski/learning-full-stack) by Bartosz Dostumski
 
-## How to run
+## How to run (locally)
 
 ### Scenarios at a glance
 
@@ -43,7 +43,7 @@ java -jar target/spring-boot-full-stack-professional-0.0.1-SNAPSHOT.jar
 ```bash
 ./mvnw clean install -P bundle-backend-and-frontend -P jib-build-local-docker-image -Dapp.image.tag=local
 docker run --name fullstack -p 8080:8080 \
-   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5555/syscomz \
+   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/syscomz \
    -e SPRING_DATASOURCE_USERNAME=postgres \
    -e SPRING_DATASOURCE_PASSWORD=password \
   springboot-react-fullstack:local
@@ -67,11 +67,11 @@ Prerequisites:
 - Node.js 18+ and npm
 - Docker (to run a local PostgreSQL)
 
-1. Start PostgreSQL locally (creates a container and maps it to port 5555):
+Start PostgreSQL locally (creates a container and maps it to port 5432):
 
 ```bash
 docker run --name db \
-   -p 5555:5432 \
+   -p 5432:5432 \
    -e POSTGRES_PASSWORD=password \
    -d postgres:alpine
 
@@ -79,15 +79,15 @@ docker run --name db \
 docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"
 ```
 
-1. Start the backend (port 8080):
+Start the backend (default port):
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The backend uses `src/main/resources/application.properties` by default, which points to `jdbc:postgresql://localhost:5555/syscomz` with user `postgres` and password `password`.
+The backend uses `src/main/resources/application.properties` by default, which points to `jdbc:postgresql://localhost:5432/syscomz` with user `postgres` and password `password`.
 
-1. Start the frontend (Vite on port 5173, proxies `/api` → 8080):
+Start the frontend (Vite on port 5173, proxies `/api` → 8080):
 
 ```bash
 cd src/frontend
@@ -123,16 +123,16 @@ Build a local Docker image and run it. Override the datasource URL to reach your
 
 docker run --name fullstack \
    -p 8080:8080 \
-   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5555/syscomz \
+   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/syscomz \
    -e SPRING_DATASOURCE_USERNAME=postgres \
    -e SPRING_DATASOURCE_PASSWORD=password \
-springboot-react-fullstack:local
+   springboot-react-fullstack:local
 ```
 
 Parameterization checklist for the container run (adjust to your environment):
 
 - DB host: `host.docker.internal` (macOS/Windows). If Linux, see note below.
-- DB port: `5555` (matches `docker run -p 5555:5432` above).
+- DB port: `5432` (matches `docker run -p 5432:5432` above).
 - DB name: `syscomz` (or your database name).
 - DB user/password: `postgres` / `password` (or your credentials).
 
@@ -143,7 +143,7 @@ Linux note: `host.docker.internal` may not resolve by default. Either:
 
 ```bash
 docker network create db
-docker run --name db -p 5555:5432 --network=db -e POSTGRES_PASSWORD=password -d postgres:alpine
+docker run --name db -p 5432:5432 --network=db -e POSTGRES_PASSWORD=password -d postgres:alpine
 docker run --rm --name fullstack --network=db -p 8080:8080 \
    -e SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/syscomz \
    -e SPRING_DATASOURCE_USERNAME=postgres \
@@ -200,6 +200,7 @@ docker login
 ```
 
 This will:
+
 - Bundle React frontend and Spring Boot backend
 - Run all tests
 - Create Docker image using Jib
@@ -207,23 +208,26 @@ This will:
 
 #### Step 2: Create AWS Elastic Beanstalk Environment + RDS
 
-1. **Go to AWS Console** → Elastic Beanstalk
-2. **Click "Create Application"**
+1 **Go to AWS Console** → Elastic Beanstalk
+2 **Click "Create Application"**
 
 **Application Settings:**
+
 - Application name: `fullstack-syscomz` (or your preferred name)
 - Environment name: `Fullstack-syscomz-env`
 - Platform: **Docker**
 - Platform branch: **Docker running on 64bit Amazon Linux 2023**
 
 **Application Code:**
+
 - Choose: **Upload your code**
 - Upload file: `elasticbeanstalk/docker-compose.yaml`
 - Version label: `v1`
 
-3. **Click "Configure more options"**
+3 **Click "Configure more options"**
 
 **Database Configuration:**
+
 - Click **Edit** on Database card
 - Engine: **postgres**
 - Engine version: **17.2** (or latest)
@@ -236,12 +240,14 @@ This will:
 - Click **Save**
 
 **Capacity:**
+
 - Environment type: **Single instance** (for development)
 - Instance types: **t2.micro** or **t3.micro**
 
-4. **Click "Create environment"**
+4 **Click "Create environment"**
 
 This takes 10-15 minutes. AWS will:
+
 - Create EC2 instance
 - Create RDS PostgreSQL database
 - Set up security groups
@@ -253,44 +259,49 @@ This takes 10-15 minutes. AWS will:
 Once the environment health shows **"Ok"** (green):
 
 1. **Get your application URL:**
+
    - Format: `http://<environment-name>.<random-id>.<region>.elasticbeanstalk.com`
    - Example: `http://fullstack-syscomz-env.eba-ejvsqiqk.us-east-1.elasticbeanstalk.com`
-
 2. **Test your application:**
+
    ```bash
    # Health check
    curl http://your-eb-url.elasticbeanstalk.com/actuator/health
-   
+
    # API endpoint
    curl http://your-eb-url.elasticbeanstalk.com/api/v1/students
    ```
-
 3. **Visit in browser:** Open your EB URL to see the React frontend
 
 #### Important Notes
 
 **Environment Variables:**
+
 - The `docker-compose.yaml` uses AWS's automatic RDS environment variables
 - AWS automatically sets: `${RDS_HOSTNAME}`, `${RDS_PORT}`, `${RDS_DB_NAME}`, `${RDS_USERNAME}`, `${RDS_PASSWORD}`
 - These are injected at runtime - no need to hardcode credentials
 
 **Database Configuration:**
+
 - The application uses `application-dev.properties` when `SPRING_PROFILES_ACTIVE=dev`
 - Environment variables from docker-compose.yaml override properties file
 - AWS Security Groups automatically allow EB → RDS connectivity
 
 **Updating Your Application:**
+
 1. Make code changes
 2. Build and push new version: `./mvnw clean package -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=v2`
 3. Update `elasticbeanstalk/docker-compose.yaml` image tag to `v2`
 4. In EB Console: **Upload and deploy** the updated `docker-compose.yaml`
 
 **Cost Management:**
+
 - **Terminate** the environment when not in use (Configuration → Actions → Terminate)
 - Choose "Create snapshot" to preserve the database
 - **Restore** later by creating a new environment with the snapshot
 
 **Troubleshooting:**
+
 - Check **Logs** → Request Logs → Last 100 Lines
 - Verify **Health** status in EB Console
 - Check **Events** tab for deployment messages
@@ -417,10 +428,6 @@ git lfs pull
 - **Notes:** Ensure Git LFS is installed (`git lfs install`) before `git lfs pull`. If you have local work you don't want to lose, stash or create a branch and back it up before resetting.
 
 This note documents the LFS migration so teammates understand the recommended workflow after the history rewrite.
-
-## Software Description
-
-- Describe the software main aim
 
 ## Software Architecture Description
 
@@ -635,7 +642,7 @@ This note documents the LFS migration so teammates understand the recommended wo
       ![AWS ElasticBean Stalk Config DB](./resources/aws-configure-database.png)
    3. Create new application-dev.properties file, and make your IDE to use it by adding Environment variables: SPRING_PROFILES_ACTIVE=dev , where dev is equals to dev in application-dev.properties
    4. Databases in AWS are protected by SecurityGroup which means only the instances behind the Load balancer can connect to them, or we can specify specific ip address which also can externally log into our database which is bad practice. (What it is happened, actually is that our clients will log into our application through load balancer, where load balancer will check for free instance of our application will connect it to the client, and the instance of our application will be connected to AWS RDS database which is protected by AWS Firewall Security Group)
-   5. Allow external applications to rich our AWS RDS database, find RDS (relational database) into AWS window, click DB instances, after that click into database id, to log into database configurations for the specific database instance. Choose VCP Security Group, log-in, click into Inbound Rules, copy first part of the source code for example: sg-0b8d993d27127ea78. Same Security Group can be seen into EC2 where is the environment instance of our application, check the tab Security and the Security Group id should be the same as that of the RDS database: sg-0b8d993d27127ea78, which means this EC2 instance of the application can communicate with this instance of RDS database.
+   5. Allow external applications to reach our AWS RDS database, find RDS (relational database) into AWS window, click DB instances, after that click into database id, to log into database configurations for the specific database instance. Choose VCP Security Group, log-in, click into Inbound Rules, copy first part of the source code for example: sg-0b8d993d27127ea78. Same Security Group can be seen into EC2 where is the environment instance of our application, check the tab Security and the Security Group id should be the same as that of the RDS database: sg-0b8d993d27127ea78, which means this EC2 instance of the application can communicate with this instance of RDS database.
       ![AWS RDS](./resources/aws-rds.png)
       ![AWS RDS Screen](./resources/aws-rds-screen.png)
       ![AWS RDS VCP Screen](./resources/aws-rds-vcp-screen.png)
