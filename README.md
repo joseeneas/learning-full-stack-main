@@ -1,488 +1,159 @@
-# Full Stack Spring Boot & React & Vite
+# Full Stack Spring Boot & React (Vite)
 
-A professional-grade full stack application with Spring Boot backend and React frontend (using Vite). Features include RESTful APIs, PostgreSQL database integration, CORS configuration, Docker containerization with Jib, AWS Elastic Beanstalk deployment, and CI/CD automation with GitHub Actions.
+A production-ready full stack app: Spring Boot backend (Java 21) + React (Vite) frontend. Key features: REST APIs, PostgreSQL with Flyway, CORS, Docker images via Jib, CI/CD with GitHub Actions, optional AWS Elastic Beanstalk deploy.
 
-Based on the popular:  [https://github.com/bdostumski/learning-full-stack](https://github.com/bdostumski/learning-full-stack) by Bartosz Dostumski
+Based on https://github.com/bdostumski/learning-full-stack.
 
-## How to run (locally)
+## Requirements
+- Java 21
+- Node.js 18+ and npm
+- Docker (optional, for local Postgres and containers)
 
-### Scenarios at a glance
+## Project layout (high level)
+- Backend: `src/main/java/com/syscomz/springbootfullstackprofessional` (controller → service → repository)
+- Frontend: `src/frontend` (Vite; proxy `/api` → `http://localhost:8080` in `vite.config.js`)
+- Config: `src/main/resources/application*.properties` (profiles: default, `dev`, `local`)
+- DB migrations: `src/main/resources/db/migration/`
+- CI/CD: `.github/workflows/*.yml`
 
-- Backend (default profile):
+## Local development
+Run backend and frontend separately.
 
+1) Backend
 ```bash
 ./mvnw spring-boot:run
 ```
 
-- Backend (dev profile, e.g., RDS or alternate DB):
-
-```bash
-SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
-```
-
-- Frontend dev server (proxy to backend on 8080):
-
+2) Frontend (Vite)
 ```bash
 cd src/frontend
 npm install
-# Either command works (Vite):
-npm run dev
-# or
-npm start
+npm run dev   # or: npm start
 ```
+Open http://localhost:5173 (Vite proxies `/api` to http://localhost:8080).
 
-- Single JAR with FE bundled:
-
+Optional: start Postgres in Docker
 ```bash
-./mvnw clean package
-java -jar target/spring-boot-full-stack-professional-0.0.1-SNAPSHOT.jar
-```
-
-- Local container image with Jib (no Dockerfile needed):
-
-```bash
-./mvnw clean install -P bundle-backend-and-frontend -P jib-build-local-docker-image -Dapp.image.tag=local
-docker run --name fullstack -p 8080:8080 \
-   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/syscomz \
-   -e SPRING_DATASOURCE_USERNAME=postgres \
-   -e SPRING_DATASOURCE_PASSWORD=password \
-  springboot-react-fullstack:local
-```
-
-- Override CORS origins (comma-separated):
-
-```bash
-# env var (relaxed binding)
-APP_CORS_ORIGINS="http://localhost:3000,http://localhost:5173" ./mvnw spring-boot:run
-
-# or JVM arg
-./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Dapp.cors.origins=http://localhost:3000,http://localhost:5173"
-```
-
-### Local development (separate backend and frontend)
-
-Prerequisites:
-
-- Java 21 (project target)
-- Node.js 18+ and npm
-- Docker (to run a local PostgreSQL)
-
-Start PostgreSQL locally (creates a container and maps it to port 5432):
-
-```bash
-docker run --name db \
-   -p 5432:5432 \
-   -e POSTGRES_PASSWORD=password \
-   -d postgres:alpine
-
-# Optional: create the application database once
+docker run --name db -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres:alpine
+# One-time DB create
 docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"
 ```
 
-Start the backend (default port):
-
+CORS
+- Backend reads `app.cors.origins` (comma-separated). Include `http://localhost:5173` for Vite dev.
+- Examples:
 ```bash
-./mvnw spring-boot:run
+APP_CORS_ORIGINS="http://localhost:5173" ./mvnw spring-boot:run
+# or
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Dapp.cors.origins=http://localhost:5173"
 ```
 
-The backend uses `src/main/resources/application.properties` by default, which points to `jdbc:postgresql://localhost:5432/syscomz` with user `postgres` and password `password`.
-
-Start the frontend (Vite on port 5173, proxies `/api` → 8080):
-
-```bash
-cd src/frontend
-npm install
-npm run dev
-```
-
-The Vite dev server proxies `/api` to `http://localhost:8080` via `src/frontend/vite.config.js`, so API calls are forwarded to the backend.
-
-#### CORS configuration
-
-- The backend exposes `/api/**` with CORS allowed origins read from `app.cors.origins` (comma-separated URLs).
-- For local dev, ensure it includes the Vite origin `http://localhost:5173` (and optionally `http://127.0.0.1:5173` and `http://localhost:3000` if needed). Set via env or JVM arg as shown above.
-
-### Local (single JAR with frontend bundled)
-
-Build and run the app with the frontend already bundled into the JAR (default profile `bundle-backend-and-frontend` handles the FE build and copies it under `static/`):
-
+## Single JAR mode (frontend bundled)
 ```bash
 ./mvnw clean package
 java -jar target/spring-boot-full-stack-professional-0.0.1-SNAPSHOT.jar
 ```
+- App: http://localhost:8080 (frontend served at `/`, APIs under `/api/...`).
 
-- App runs on [http://localhost:8080](http://localhost:8080)
-- The React build is served from the JAR under `/` and APIs stay under `/api/...`
-
-### Local (Docker image, via Jib)
-
-Build a local Docker image and run it. Override the datasource URL to reach your host DB from inside the container.
-
+## Docker images (Jib)
+Build local image and run it against a host Postgres:
 ```bash
-./mvnw clean package -P bundle-backend-and-frontend -P jib-build-local-docker-image -Dapp.image.tag=local
+./mvnw clean install -P bundle-backend-and-frontend -P jib-build-local-docker-image -Dapp.image.tag=local
 
-docker run --name fullstack \
-   -p 8080:8080 \
-   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/syscomz \
-   -e SPRING_DATASOURCE_USERNAME=postgres \
-   -e SPRING_DATASOURCE_PASSWORD=password \
-   springboot-react-fullstack:local
-```
-
-Parameterization checklist for the container run (adjust to your environment):
-
-- DB host: `host.docker.internal` (macOS/Windows). If Linux, see note below.
-- DB port: `5432` (matches `docker run -p 5432:5432` above).
-- DB name: `syscomz` (or your database name).
-- DB user/password: `postgres` / `password` (or your credentials).
-
-Linux note: `host.docker.internal` may not resolve by default. Either:
-
-- Add host gateway: `--add-host=host.docker.internal:host-gateway`, or
-- Use a user-defined Docker network and connect both containers. Example:
-
-```bash
-docker network create db
-docker run --name db -p 5432:5432 --network=db -e POSTGRES_PASSWORD=password -d postgres:alpine
-docker run --rm --name fullstack --network=db -p 8080:8080 \
-   -e SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/syscomz \
-   -e SPRING_DATASOURCE_USERNAME=postgres \
-   -e SPRING_DATASOURCE_PASSWORD=password \
-   springboot-react-fullstack:local
-```
-
-### CI/CD with GitHub Actions
-
-The repository uses GitHub Actions for continuous integration and delivery (`.github/workflows/ci.yml`).
-
-#### Workflow Jobs
-
-**On Pull Request or Push to main/master:**
-
-1. **Build & Test** - Builds backend (Java 21) and frontend (React/Vite), runs all tests
-2. **Security Scan** (push only) - Runs OWASP Dependency-Check and generates SBOM
-3. **Build OCI Image Tar** (push only) - Creates container image tar using Jib
-4. **Push to GHCR** (push only) - Publishes image to GitHub Container Registry
-
-#### Pull and Run Images from GHCR
-
-Images are automatically published to GitHub Container Registry on push to main/master:
-
-```bash
-# Pull latest image
-docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
-
-# Pull specific commit
-docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:<commit-sha>
-
-# Run the GHCR image
 docker run --name fullstack -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5555/syscomz \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/syscomz \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=password \
+  springboot-react-fullstack:local
+```
+Linux note: if `host.docker.internal` is unavailable, use `--add-host=host.docker.internal:host-gateway` or a user-defined Docker network, e.g. `jdbc:postgresql://db:5432/syscomz`.
+
+GHCR images (from CI)
+```bash
+# Pull latest
+docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
+# Run
+docker run --name fullstack -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/syscomz \
   -e SPRING_DATASOURCE_USERNAME=postgres \
   -e SPRING_DATASOURCE_PASSWORD=password \
   ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
 ```
 
-Find published images under your repository's Packages tab or GitHub profile Packages.
-
-### Manual Deployment to Docker Hub and AWS
-
-The CI/CD pipeline publishes to GHCR automatically. For manual Docker Hub deployment (e.g., for AWS Elastic Beanstalk):
-
-#### Step 1: Build and Push Docker Image to Docker Hub
-
+## Testing
+Backend (Maven):
 ```bash
-# Login to Docker Hub
-docker login
-
-# Build and push to Docker Hub
-./mvnw clean package -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=v1
-```
-
-This will:
-
-- Bundle React frontend and Spring Boot backend
-- Run all tests
-- Create Docker image using Jib
-- Push to Docker Hub as: `<your-dockerhub-username>/springboot-react-fullstack:v1` and `:latest`
-
-#### Step 2: Create AWS Elastic Beanstalk Environment + RDS
-
-1 **Go to AWS Console** → Elastic Beanstalk
-2 **Click "Create Application"**
-
-**Application Settings:**
-
-- Application name: `fullstack-syscomz` (or your preferred name)
-- Environment name: `Fullstack-syscomz-env`
-- Platform: **Docker**
-- Platform branch: **Docker running on 64bit Amazon Linux 2023**
-
-**Application Code:**
-
-- Choose: **Upload your code**
-- Upload file: `elasticbeanstalk/docker-compose.yaml`
-- Version label: `v1`
-
-3 **Click "Configure more options"**
-
-**Database Configuration:**
-
-- Click **Edit** on Database card
-- Engine: **postgres**
-- Engine version: **17.2** (or latest)
-- Instance class: **db.t3.micro** (Free tier eligible)
-- Storage: **20 GB**
-- Username: **postgres** (or your choice)
-- Password: **Choose a strong password and save it!**
-- Database name: **ebdb** (AWS default)
-- Database retention: **Delete** (or Create snapshot if you want to keep data)
-- Click **Save**
-
-**Capacity:**
-
-- Environment type: **Single instance** (for development)
-- Instance types: **t2.micro** or **t3.micro**
-
-4 **Click "Create environment"**
-
-This takes 10-15 minutes. AWS will:
-
-- Create EC2 instance
-- Create RDS PostgreSQL database
-- Set up security groups
-- Deploy your Docker container
-- Configure automatic environment variables (`RDS_HOSTNAME`, `RDS_PORT`, `RDS_DB_NAME`, `RDS_USERNAME`, `RDS_PASSWORD`)
-
-#### Step 3: Verify Deployment
-
-Once the environment health shows **"Ok"** (green):
-
-1. **Get your application URL:**
-
-   - Format: `http://<environment-name>.<random-id>.<region>.elasticbeanstalk.com`
-   - Example: `http://fullstack-syscomz-env.eba-ejvsqiqk.us-east-1.elasticbeanstalk.com`
-2. **Test your application:**
-
-   ```bash
-   # Health check
-   curl http://your-eb-url.elasticbeanstalk.com/actuator/health
-
-   # API endpoint
-   curl http://your-eb-url.elasticbeanstalk.com/api/v1/students
-   ```
-3. **Visit in browser:** Open your EB URL to see the React frontend
-
-#### Important Notes
-
-**Environment Variables:**
-
-- The `docker-compose.yaml` uses AWS's automatic RDS environment variables
-- AWS automatically sets: `${RDS_HOSTNAME}`, `${RDS_PORT}`, `${RDS_DB_NAME}`, `${RDS_USERNAME}`, `${RDS_PASSWORD}`
-- These are injected at runtime - no need to hardcode credentials
-
-**Database Configuration:**
-
-- The application uses `application-dev.properties` when `SPRING_PROFILES_ACTIVE=dev`
-- Environment variables from docker-compose.yaml override properties file
-- AWS Security Groups automatically allow EB → RDS connectivity
-
-**Updating Your Application:**
-
-1. Make code changes
-2. Build and push new version: `./mvnw clean package -P bundle-backend-and-frontend -P jib-build-docker-image-and-push-it-to-docker-hub -Dapp.image.tag=v2`
-3. Update `elasticbeanstalk/docker-compose.yaml` image tag to `v2`
-4. In EB Console: **Upload and deploy** the updated `docker-compose.yaml`
-
-**Cost Management:**
-
-- **Terminate** the environment when not in use (Configuration → Actions → Terminate)
-- Choose "Create snapshot" to preserve the database
-- **Restore** later by creating a new environment with the snapshot
-
-**Troubleshooting:**
-
-- Check **Logs** → Request Logs → Last 100 Lines
-- Verify **Health** status in EB Console
-- Check **Events** tab for deployment messages
-- Ensure Security Groups allow EB ↔ RDS connectivity
-
-### Quick start: run locally in two terminals
-
-Terminal 1 (backend):
-
-```bash
-./mvnw spring-boot:run
-```
-
-Terminal 2 (frontend):
-
-```bash
-cd src/frontend
-npm install
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173). The Vite dev server proxies API requests to [http://localhost:8080](http://localhost:8080).
-
-### Testing
-
-- Unit tests only (fast):
-
-```bash
+# Unit tests
 ./mvnw test
-```
-
-- Full test suite (unit + integration tests):
-
-```bash
+# Full suite (unit + integration)
 ./mvnw verify
-```
-
-- Full build without running integration tests (keeps unit tests):
-
-```bash
+# Skip integration tests
 ./mvnw -DskipITs=true verify
-```
-
-- Run a specific unit test (example):
-
-```bash
+# Single unit test
 ./mvnw -Dtest=StudentServiceTest test
-```
-
-- Run a specific integration test (example):
-
-```bash
+# Single integration test
 ./mvnw -Dit.test=StudentExportIT verify
 ```
+- Integration tests use H2 in PostgreSQL mode (no external DB). See `src/test/resources/application-it.properties`.
+- Reports: unit → `target/surefire-reports`, integration → `target/failsafe-reports`.
 
-Notes:
-
-- Integration tests use an in-memory H2 database in PostgreSQL compatibility mode. No external Postgres is required during tests. See `src/test/resources/application-it.properties`.
-- Test reports: unit → `target/surefire-reports`, integration → `target/failsafe-reports`.
-- Frontend tests (optional):
-
+Frontend (optional):
 ```bash
 cd src/frontend
-npm install
-npm test
+npm test   # note: uses react-scripts in a Vite app; consider migrating to Vitest
 ```
 
-- Manually verify CSV export (optional):
+## Configuration & profiles
+- Properties: `application.properties`, `application-dev.properties`, `application-local.properties`.
+- Select profile via `SPRING_PROFILES_ACTIVE=dev` or `-Dspring-boot.run.profiles=local`.
+- Flyway is enabled with baseline-on-migrate; migrations live in `db/migration`.
 
-```bash
-curl -L -o students.csv "http://localhost:8080/api/v1/students/export?gender=FEMALE&domain=&sortBy=firstName&direction=ASC"
-```
+## CI/CD (GitHub Actions)
+Workflows: `.github/workflows/build.yml`, `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`.
+- Build & Test on push/PR (Java 21 + Vite build), upload test reports and JAR artifacts.
+- Optional: build OCI image tar; push image to GHCR on non-PR events.
+- Security profile available (OWASP Dependency-Check + CycloneDX). Set `NVD_API_KEY` in CI for faster updates.
 
-### Troubleshooting
+## AWS Elastic Beanstalk (optional)
+- Deploy using `elasticbeanstalk/docker-compose.yaml` (reads `${RDS_*}` env vars provided by EB). Exposes container 8080 → host 80.
+- Use `SPRING_PROFILES_ACTIVE=dev` for RDS-backed configuration.
+- See `docs/AWS-DEPLOYMENT-GUIDE.md` for step-by-step instructions.
 
-- Database connection refused
+## Troubleshooting
+- DB connection refused: ensure the Postgres container is up and DB created; verify port and credentials.
+- Ports in use: free 8080 (backend) or 5173 (Vite) or accept alternate port suggested by Vite.
+- CORS in dev: confirm Vite proxy and `app.cors.origins` include `http://localhost:5173`; restart Vite after changes.
+- Container cannot reach host DB: use `host.docker.internal` (or add host-gateway / Docker network on Linux).
 
-  - Ensure the container is up: `docker ps` should show the `db` container.
-  - Confirm DB port mapping and credentials match `application.properties`.
-  - Create the DB once: `docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"`.
-- Port already in use
-
-  - Backend 8080 busy: `lsof -i :8080` (macOS) then stop the process.
-  - Frontend 5173 busy: the dev server will offer another port; accept or free 5173.
-- CORS during local dev
-
-  - The Vite dev server proxy is configured in `src/frontend/vite.config.js` (proxies `/api` to `http://localhost:8080`).
-  - Restart `npm run dev` after changing `vite.config.js`.
-  - If you still see 403s in Safari, try a hard refresh, clear cache, or use a private window (browsers can cache preflight results).
-- Dockerized app cannot reach host database
-
-  - On macOS/Windows use `host.docker.internal` in `SPRING_DATASOURCE_URL`.
-  - Example: `jdbc:postgresql://host.docker.internal:5555/syscomz`.
-- AWS RDS connectivity
-
-  - Set `SPRING_PROFILES_ACTIVE=dev` (uses `application-dev.properties`).
-  - Verify EB and RDS security groups allow connectivity.
-
-### Frontend (Vite) notes
-
-- Port: `5173` by default (`vite`/`npm run dev`).
-- Proxy: `/api` → `http://localhost:8080` in `src/frontend/vite.config.js`.
-- Build output: `src/frontend/build` (served by Spring Boot when bundled).
-- Commands: `npm run dev` (dev), `npm run build` (production build), `npm run preview` (serve built files locally).
-- CORS: include `http://localhost:5173` in `app.cors.origins` when running backend and frontend separately.
-
-## Repository History & Git LFS
-
-- **Context:** The repository recently migrated a large committed frontend binary into Git LFS to reduce the main history size and improve clone performance.
-- **If you're a collaborator:** the safest way to sync is to re-clone the repository (recommended):
-
+## Repository history & Git LFS
+The repo migrated large binaries to Git LFS. Recommended:
 ```bash
 git clone <repo-url>
 ```
-
-- **If you must update an existing clone**, run these commands to reset to the rewritten `main` and fetch LFS objects:
-
+To fix an existing clone:
 ```bash
 git fetch origin
 git reset --hard origin/main
 git lfs pull
 ```
+Make sure `git lfs install` is run once on your machine.
 
-- **Notes:** Ensure Git LFS is installed (`git lfs install`) before `git lfs pull`. If you have local work you don't want to lose, stash or create a branch and back it up before resetting.
+## Architecture
+- Spring Boot API (controllers under `student/`, service, repository)
+- React frontend (Vite, proxy to backend)
+- Spring Data JPA + PostgreSQL; Flyway migrations
+- Unit and integration tests (H2 for IT)
 
-This note documents the LFS migration so teammates understand the recommended workflow after the history rewrite.
+![Software Architecture](./resources/architecture.jpg)
 
-## Software Architecture Description
-
-- Spring Boot Backend API
-- Frontend with React.js Hooks and Functions Components
-- Maven Build Tool
-- Databases using Postgres on Docker
-- Spring Data JPA
-- Server and Client Side Error Handling
-- Packaging applications for deployment using Docker and Jib
-- AWS RDS & Elastic Beanstalk
-- Software Deployment Automation with GitHub Actions
-- Software Deployment Monitoring with Slack
-- Unit and Integration Testing
-
-## Software Architecture
-
-![Software Architecture Diagram](./resources/architecture.jpg)
-
-## Links
-
-- [Spring.io](https://spring.io/projects/spring-framework) | The Spring Framework is an application framework and inversion of control container for the Java platform
-- [Start.Spring.io](https://start.spring.io/) | Spring Initializer
-- [React.js](https://reactjs.org/) | A JavaScript library for building user interfaces
-- [Node.js](https://nodejs.org/en/) | Node.js is an open-source, cross-platform JavaScript runtime environment.
-- [Create React App with npm](https://www.npmjs.com/package/create-react-app)
-- [Create React App](https://github.com/facebook/create-react-app)
-- [Ant Design](https://ant.design/) | A design system for enterprise-level products. Create an efficient and enjoyable work experience.
-- [Ant Design Use in create-react-app](https://ant.design/docs/react/use-with-create-react-app)
-- [React Bootstrap](https://react-bootstrap.github.io/) | By relying entirely on the Bootstrap stylesheet for UI design, React-Bootstrap just works with the thousands of Bootstrap themes you already love.
-- [Unfetch](https://github.com/developit/unfetch) | Bare minimum 500b fetch polyfill.
-- [Axios](https://github.com/axios/axios) | Promise based HTTP client for the browser and node.js
-- [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
-- [Draw.io](https://app.diagrams.net/)
-- [frontend-maven-plugin](https://github.com/eirslett/frontend-maven-plugin) | is used to automate the bundle process between FE and BE projects into one project.
-- [maven-resources-plugin](https://maven.apache.org/plugins/maven-resources-plugin/dependency-info.html) | is used to copy **./built** directory from our FE project into **./resources/static** directory from our BE project
-- [Docker Hub](https://hub.docker.com/) | Docker containers repository
-- [Jib](https://github.com/GoogleContainerTools/jib) | Containerize your Java application
-- [Jib FAQs in case of issues](https://github.com/GoogleContainerTools/jib/blob/master/docs/faq.md#what-should-i-do-when-the-registry-responds-with-unauthorized) | If you have any issues with jib refer to this link
-- [AWS Registration Page](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all) | Create AWS Account
-- [Docker Compose](https://docs.docker.com/compose/) | Compose is a tool for defining and running multi-container Docker application.
-- [Docker Compose Versions](https://docs.docker.com/compose/compose-file/compose-file-v3/) | Compose file version 3 reference
-- [Terminate Elastic Beanstalk Environment](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.terminating.html)
-- [Restore Elastic Beanstalk Environment](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-management-rebuild.html)
-- [Docker image Postgres](https://hub.docker.com/_/postgres) | Postgres Image from docker hub repository
-- [Mockaroo](https://www.mockaroo.com/)  | Generate fake data based on your production data
-- [GitHub](https://github.com/features/actions) | Automate your workflow from idea to production
-- [Slack](https://slack.com/) | Slack team messaging system
-- [Slack build own apps](https://api.slack.com/apps) | Slack build own app that will automate messaging notifications in CI/CD process
-- [Junit 5](https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests) | testing framework for Java and the JVM
-- [AssertJ](https://assertj.github.io/doc/) | AssertJ
-- [H2 Database](https://www.h2database.com/html/main.html) | H2 In-memory Database
-- [Failsafe Plugin](https://maven.apache.org/surefire/maven-failsafe-plugin/) | The Failsafe Plugin is designed to run integration tests.
-- [Faker](https://github.com/DiUS/java-faker) | Randomly generate fake data, which will be used into integration tests
-
+## References
+- Spring: https://spring.io/projects/spring-framework
+- React: https://react.dev/
+- Vite: https://vitejs.dev/
+- frontend-maven-plugin: https://github.com/eirslett/frontend-maven-plugin
+- Jib: https://github.com/GoogleContainerTools/jib
+- Docker Postgres image: https://hub.docker.com/_/postgres
+- CORS (MDN): https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 ## Cheat Sheet
 
 - npm -g i npx | global install npx

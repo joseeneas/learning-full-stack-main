@@ -36,8 +36,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Maven Build & Test (includes frontend build via profile)
-        run: ./mvnw -B -DskipTests=false clean verify
+      - name: Build & Test (Make)
+        run: make verify
 
       - name: Upload Surefire & Failsafe Reports
         if: always()
@@ -72,10 +72,10 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Run Security Scan Profile (Dependency-Check + CycloneDX)
+      - name: Run Security Scan (Make)
         run: |
           if [ -z "${NVD_API_KEY}" ]; then echo "NVD_API_KEY not set; running slow scan without key"; fi
-          ./mvnw -B -P security-scan clean verify || true
+          make security-scan
 
       - name: Upload Security Reports
         uses: actions/upload-artifact@v4

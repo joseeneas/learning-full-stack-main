@@ -238,7 +238,8 @@
                         <version>9.2.0</version>
                         <configuration>
                             <!-- Read the API key from environment to avoid committing secrets -->
-                            <nvdApiKey>cefacf9f-889f-4481-ad72-4c3827c0d079</nvdApiKey>
+                            <!-- Read from env at runtime (set NVD_API_KEY); keep blank locally if not provided -->
+                            <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
                             <!-- Increase delay between NVD API calls to avoid 403/429 rate limits (ms) -->
                             <nvdApiDelay>6000</nvdApiDelay>
                             <!-- Do not fail normal builds; use reports for decisioning -->
