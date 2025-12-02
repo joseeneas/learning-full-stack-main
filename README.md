@@ -2,14 +2,16 @@
 
 A production-ready full stack app: Spring Boot backend (Java 21) + React (Vite) frontend. Key features: REST APIs, PostgreSQL with Flyway, CORS, Docker images via Jib, CI/CD with GitHub Actions, optional AWS Elastic Beanstalk deploy.
 
-Based on https://github.com/bdostumski/learning-full-stack.
+Based on <https://github.com/bdostumski/learning-full-stack>.
 
 ## Requirements
+
 - Java 21
 - Node.js 18+ and npm
 - Docker (optional, for local Postgres and containers)
 
 ## Project layout (high level)
+
 - Backend: `src/main/java/com/syscomz/springbootfullstackprofessional` (controller → service → repository)
 - Frontend: `src/frontend` (Vite; proxy `/api` → `http://localhost:8080` in `vite.config.js`)
 - Config: `src/main/resources/application*.properties` (profiles: default, `dev`, `local`)
@@ -17,22 +19,27 @@ Based on https://github.com/bdostumski/learning-full-stack.
 - CI/CD: `.github/workflows/*.yml`
 
 ## Local development
+
 Run backend and frontend separately.
 
-1) Backend
+1  Backend
+
 ```bash
 ./mvnw spring-boot:run
 ```
 
-2) Frontend (Vite)
+2 Frontend (Vite)
+
 ```bash
 cd src/frontend
 npm install
 npm run dev   # or: npm start
 ```
-Open http://localhost:5173 (Vite proxies `/api` to http://localhost:8080).
+
+Open <http://localhost:5173> (Vite proxies `/api` to <http://localhost:8080>).
 
 Optional: start Postgres in Docker
+
 ```bash
 docker run --name db -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres:alpine
 # One-time DB create
@@ -40,8 +47,10 @@ docker exec -it db psql -U postgres -c "CREATE DATABASE syscomz;"
 ```
 
 CORS
+
 - Backend reads `app.cors.origins` (comma-separated). Include `http://localhost:5173` for Vite dev.
 - Examples:
+
 ```bash
 APP_CORS_ORIGINS="http://localhost:5173" ./mvnw spring-boot:run
 # or
@@ -49,14 +58,18 @@ APP_CORS_ORIGINS="http://localhost:5173" ./mvnw spring-boot:run
 ```
 
 ## Single JAR mode (frontend bundled)
+
 ```bash
 ./mvnw clean package
 java -jar target/spring-boot-full-stack-professional-0.0.1-SNAPSHOT.jar
 ```
-- App: http://localhost:8080 (frontend served at `/`, APIs under `/api/...`).
+
+- App: <http://localhost:8080> (frontend served at `/`, APIs under `/api/...`).
 
 ## Docker images (Jib)
+
 Build local image and run it against a host Postgres:
+
 ```bash
 ./mvnw clean install -P bundle-backend-and-frontend -P jib-build-local-docker-image -Dapp.image.tag=local
 
@@ -66,9 +79,11 @@ docker run --name fullstack -p 8080:8080 \
   -e SPRING_DATASOURCE_PASSWORD=password \
   springboot-react-fullstack:local
 ```
+
 Linux note: if `host.docker.internal` is unavailable, use `--add-host=host.docker.internal:host-gateway` or a user-defined Docker network, e.g. `jdbc:postgresql://db:5432/syscomz`.
 
 GHCR images (from CI)
+
 ```bash
 # Pull latest
 docker pull ghcr.io/<your-gh-username>/springboot-react-fullstack:latest
@@ -81,7 +96,9 @@ docker run --name fullstack -p 8080:8080 \
 ```
 
 ## Testing
+
 Backend (Maven):
+
 ```bash
 # Unit tests
 ./mvnw test
@@ -94,51 +111,64 @@ Backend (Maven):
 # Single integration test
 ./mvnw -Dit.test=StudentExportIT verify
 ```
+
 - Integration tests use H2 in PostgreSQL mode (no external DB). See `src/test/resources/application-it.properties`.
 - Reports: unit → `target/surefire-reports`, integration → `target/failsafe-reports`.
 
 Frontend (optional):
+
 ```bash
 cd src/frontend
 npm test   # note: uses react-scripts in a Vite app; consider migrating to Vitest
 ```
 
 ## Configuration & profiles
+
 - Properties: `application.properties`, `application-dev.properties`, `application-local.properties`.
 - Select profile via `SPRING_PROFILES_ACTIVE=dev` or `-Dspring-boot.run.profiles=local`.
 - Flyway is enabled with baseline-on-migrate; migrations live in `db/migration`.
 
 ## CI/CD (GitHub Actions)
+
 Workflows: `.github/workflows/build.yml`, `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`.
+
 - Build & Test on push/PR (Java 21 + Vite build), upload test reports and JAR artifacts.
 - Optional: build OCI image tar; push image to GHCR on non-PR events.
 - Security profile available (OWASP Dependency-Check + CycloneDX). Set `NVD_API_KEY` in CI for faster updates.
 
 ## AWS Elastic Beanstalk (optional)
+
 - Deploy using `elasticbeanstalk/docker-compose.yaml` (reads `${RDS_*}` env vars provided by EB). Exposes container 8080 → host 80.
 - Use `SPRING_PROFILES_ACTIVE=dev` for RDS-backed configuration.
 - See `docs/AWS-DEPLOYMENT-GUIDE.md` for step-by-step instructions.
 
 ## Troubleshooting
+
 - DB connection refused: ensure the Postgres container is up and DB created; verify port and credentials.
 - Ports in use: free 8080 (backend) or 5173 (Vite) or accept alternate port suggested by Vite.
 - CORS in dev: confirm Vite proxy and `app.cors.origins` include `http://localhost:5173`; restart Vite after changes.
 - Container cannot reach host DB: use `host.docker.internal` (or add host-gateway / Docker network on Linux).
 
 ## Repository history & Git LFS
+
 The repo migrated large binaries to Git LFS. Recommended:
+
 ```bash
 git clone <repo-url>
 ```
+
 To fix an existing clone:
+
 ```bash
 git fetch origin
 git reset --hard origin/main
 git lfs pull
 ```
+
 Make sure `git lfs install` is run once on your machine.
 
 ## Architecture
+
 - Spring Boot API (controllers under `student/`, service, repository)
 - React frontend (Vite, proxy to backend)
 - Spring Data JPA + PostgreSQL; Flyway migrations
@@ -147,13 +177,15 @@ Make sure `git lfs install` is run once on your machine.
 ![Software Architecture](./resources/architecture.jpg)
 
 ## References
-- Spring: https://spring.io/projects/spring-framework
-- React: https://react.dev/
-- Vite: https://vitejs.dev/
-- frontend-maven-plugin: https://github.com/eirslett/frontend-maven-plugin
-- Jib: https://github.com/GoogleContainerTools/jib
-- Docker Postgres image: https://hub.docker.com/_/postgres
-- CORS (MDN): https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+
+- Spring: <https://spring.io/projects/spring-framework>
+- React: <https://react.dev/>
+- Vite: <https://vitejs.dev/>
+- frontend-maven-plugin: <https://github.com/eirslett/frontend-maven-plugin>
+- Jib: <https://github.com/GoogleContainerTools/jib>
+- Docker Postgres image: <https://hub.docker.com/_/postgres>
+- CORS (MDN): <https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS>
+
 ## Cheat Sheet
 
 - npm -g i npx | global install npx
